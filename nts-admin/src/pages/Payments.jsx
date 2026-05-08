@@ -7,11 +7,11 @@ import {
 import {
   AddRounded, CloseRounded, EditRounded, DeleteRounded,
   WhatsApp, EmailRounded, MoreVertRounded, ReceiptRounded,
-  TrendingUpRounded, AccountBalanceWalletRounded, WarningAmberRounded,
-  CheckCircleRounded, HourglassTopRounded, ArrowForwardRounded,
+  AccountBalanceWalletRounded, WarningAmberRounded,
+  CheckCircleRounded, HourglassTopRounded,
 } from '@mui/icons-material';
 import { paymentsAPI, casesAPI, clientsAPI } from '../api/services';
-import { PageHeader } from './UI';
+import api from '../api/client';   // ✅ needed for notify endpoints
 
 const EMPTY_FORM = {
   client: '', case: '', amount: '', payment_date: '',
@@ -49,27 +49,75 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-// ── Payment Row Actions menu ──
-const ActionMenu = ({ payment, onEdit, onDelete, onWhatsApp, onEmail }) => {
+// ── Action Menu with per-button loading ──
+const ActionMenu = ({ payment, onEdit, onDelete, onNotifyEmail, onNotifyWhatsApp, sendingEmail, sendingWA }) => {
   const [anchor, setAnchor] = useState(null);
+
   return (
     <>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-        {/* WhatsApp */}
-        <Tooltip title="Send via WhatsApp">
-          <IconButton size="small" onClick={() => onWhatsApp(payment)}
-            sx={{ color: '#25D366', bgcolor: '#F0FDF4', borderRadius: '8px', width: 30, height: 30, '&:hover': { bgcolor: '#D1FAE5', transform: 'scale(1.08)' }, transition: 'all 0.15s' }}>
-            <WhatsApp sx={{ fontSize: 15 }} />
-          </IconButton>
+
+        {/* ✅ WhatsApp — calls backend POST /payments/{id}/notify-whatsapp/ */}
+        <Tooltip title={
+          sendingWA
+            ? 'Sending…'
+            : payment.client_phone
+              ? `Send invoice to ${payment.client_phone}`
+              : 'No phone number on file for this client'
+        }>
+          <span>
+            <IconButton
+              size="small"
+              disabled={sendingWA}
+              onClick={() => onNotifyWhatsApp(payment)}
+              sx={{
+                color: '#25D366',
+                bgcolor: '#F0FDF4',
+                borderRadius: '8px', width: 30, height: 30,
+                '&:hover': { bgcolor: '#D1FAE5', transform: 'scale(1.08)' },
+                '&:disabled': { bgcolor: '#F8FAFC', color: '#CBD5E1' },
+                transition: 'all 0.15s',
+              }}
+            >
+              {sendingWA
+                ? <CircularProgress size={13} sx={{ color: '#25D366' }} />
+                : <WhatsApp sx={{ fontSize: 15 }} />
+              }
+            </IconButton>
+          </span>
         </Tooltip>
-        {/* Email */}
-        <Tooltip title="Send via Email">
-          <IconButton size="small" onClick={() => onEmail(payment)}
-            sx={{ color: '#3B82F6', bgcolor: '#EFF6FF', borderRadius: '8px', width: 30, height: 30, '&:hover': { bgcolor: '#DBEAFE', transform: 'scale(1.08)' }, transition: 'all 0.15s' }}>
-            <EmailRounded sx={{ fontSize: 15 }} />
-          </IconButton>
+
+        {/* ✅ Email — calls backend POST /payments/{id}/notify-email/ */}
+        <Tooltip title={
+          sendingEmail
+            ? 'Sending…'
+            : payment.client_email
+              ? `Send invoice to ${payment.client_email}`
+              : 'No email address on file for this client'
+        }>
+          <span>
+            <IconButton
+              size="small"
+              disabled={sendingEmail}
+              onClick={() => onNotifyEmail(payment)}
+              sx={{
+                color: '#3B82F6',
+                bgcolor: '#EFF6FF',
+                borderRadius: '8px', width: 30, height: 30,
+                '&:hover': { bgcolor: '#DBEAFE', transform: 'scale(1.08)' },
+                '&:disabled': { bgcolor: '#F8FAFC', color: '#CBD5E1' },
+                transition: 'all 0.15s',
+              }}
+            >
+              {sendingEmail
+                ? <CircularProgress size={13} sx={{ color: '#3B82F6' }} />
+                : <EmailRounded sx={{ fontSize: 15 }} />
+              }
+            </IconButton>
+          </span>
         </Tooltip>
-        {/* More */}
+
+        {/* More (edit / delete) */}
         <Tooltip title="More actions">
           <IconButton size="small" onClick={e => setAnchor(e.currentTarget)}
             sx={{ color: '#64748B', bgcolor: '#F8F7F4', borderRadius: '8px', width: 30, height: 30, '&:hover': { bgcolor: '#F1F5F9' }, transition: 'all 0.15s' }}>
@@ -107,6 +155,10 @@ export default function PaymentsPage() {
   const [deleting,        setDeleting]        = useState(false);
   const [snack,           setSnack]           = useState({ open: false, msg: '', severity: 'success' });
 
+  // ✅ Per-row sending state — tracks which payment is being notified
+  const [sendingEmailId, setSendingEmailId] = useState(null);
+  const [sendingWAId,    setSendingWAId]    = useState(null);
+
   const notify = (msg, severity = 'success') => setSnack({ open: true, msg, severity });
 
   const fetchData = useCallback(async () => {
@@ -125,10 +177,9 @@ export default function PaymentsPage() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-
-  const handleOpenCreate = () => { setEditingId(null); setForm(EMPTY_FORM); setDialog(true); };
-  const handleOpenEdit   = (p)  => {
+  const handleChange      = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleOpenCreate  = ()  => { setEditingId(null); setForm(EMPTY_FORM); setDialog(true); };
+  const handleOpenEdit    = (p) => {
     setEditingId(p.id);
     setForm({ client: p.client ?? '', case: p.case ?? '', amount: p.amount ?? '', payment_date: p.payment_date ?? '', payment_method: p.payment_method || 'cash', status: p.status ?? 'pending', notes: p.notes ?? '' });
     setDialog(true);
@@ -147,7 +198,7 @@ export default function PaymentsPage() {
     finally { setSaving(false); }
   };
 
-  const handleOpenDelete   = (p) => { setDeletingPayment(p); setDeleteDialog(true); };
+  const handleOpenDelete    = (p) => { setDeletingPayment(p); setDeleteDialog(true); };
   const handleConfirmDelete = async () => {
     if (!deletingPayment) return;
     setDeleting(true);
@@ -157,36 +208,39 @@ export default function PaymentsPage() {
       setDeleteDialog(false);
       setDeletingPayment(null);
       notify('Payment deleted');
-    } catch (e) { notify('Failed to delete', 'error'); console.error(e); }
+    } catch { notify('Failed to delete', 'error'); }
     finally { setDeleting(false); }
   };
 
-  // ── WhatsApp notification ──
-  const handleWhatsApp = (payment) => {
-    const clientName  = payment.client_name  || 'Client';
-    const amount      = payment.amount       ? `₹${payment.amount}` : '';
-    const caseTitle   = payment.case_title   ? ` for case "${payment.case_title}"` : '';
-    const status      = payment.status       ? ` (Status: ${payment.status})` : '';
-    const date        = payment.payment_date ? ` on ${new Date(payment.payment_date).toLocaleDateString('en-IN')}` : '';
-    const msg = encodeURIComponent(
-      `Dear ${clientName},\n\nThis is a payment reminder${caseTitle}.\nAmount: ${amount}${date}${status}.\n\nPlease contact us for any queries.\n\nRegards,\nHP HCMS`
-    );
-    window.open(`https://wa.me/?text=${msg}`, '_blank');
-    notify('Opening WhatsApp…');
+  // ✅ FIXED: Send email via backend — uses your existing email template
+  // Calls: POST /api/payments/{id}/notify-email/
+  // Backend: send_client_invoice_email() from email_service/tasks_email.py
+  const handleNotifyEmail = async (payment) => {
+    setSendingEmailId(payment.id);
+    try {
+      await api.post(`/payments/${payment.id}/notify-email/`);
+      notify(`✅ Invoice sent to ${payment.client_email || 'client'}`, 'success');
+    } catch (e) {
+      const msg = e?.response?.data?.error || e?.response?.data?.detail || 'Failed to send email';
+      notify(msg, 'error');
+    } finally {
+      setSendingEmailId(null);
+    }
   };
 
-  // ── Email notification ──
-  const handleEmail = (payment) => {
-    const clientName = payment.client_name  || 'Client';
-    const amount     = payment.amount       ? `₹${payment.amount}` : '';
-    const caseTitle  = payment.case_title   ? ` for case "${payment.case_title}"` : '';
-    const date       = payment.payment_date ? new Date(payment.payment_date).toLocaleDateString('en-IN') : '';
-    const subject    = encodeURIComponent(`Payment Receipt${caseTitle} — ${amount}`);
-    const body       = encodeURIComponent(
-      `Dear ${clientName},\n\nPlease find the payment details below:\n\nAmount: ${amount}\nDate: ${date}\nStatus: ${payment.status || 'pending'}\n\nFor any queries, please contact us.\n\nRegards,\nHP HCMS`
-    );
-    window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
-    notify('Opening email client…');
+  // ✅ FIXED: Send WhatsApp via backend — uses Twilio
+  // Calls: POST /api/payments/{id}/notify-whatsapp/
+  const handleNotifyWhatsApp = async (payment) => {
+    setSendingWAId(payment.id);
+    try {
+      await api.post(`/payments/${payment.id}/notify-whatsapp/`);
+      notify(`✅ WhatsApp invoice sent to ${payment.client_phone || 'client'}`, 'success');
+    } catch (e) {
+      const msg = e?.response?.data?.error || e?.response?.data?.detail || 'Failed to send WhatsApp';
+      notify(msg, 'error');
+    } finally {
+      setSendingWAId(null);
+    }
   };
 
   // ── Stats ──
@@ -264,7 +318,7 @@ export default function PaymentsPage() {
               <WhatsApp sx={{ fontSize: 14, color: '#25D366' }} />
               <EmailRounded sx={{ fontSize: 14, color: '#3B82F6' }} />
             </Box>
-            <Typography sx={{ fontSize: 11, color: '#9CA3AF' }}>Notify clients directly from the table</Typography>
+            <Typography sx={{ fontSize: 11, color: '#9CA3AF' }}>Send invoice directly to client</Typography>
           </Box>
         </Box>
 
@@ -288,7 +342,7 @@ export default function PaymentsPage() {
           <>
             {/* Column headers */}
             <Box sx={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1.2fr 1.2fr 1.2fr 1.3fr 1.5fr', gap: 2, px: 3, py: 1.5, bgcolor: '#FAFAF8', borderBottom: '1px solid #F0EDE5' }}>
-              {['Client', 'Case', 'Amount', 'Method', 'Date', 'Status', 'Actions'].map(h => (
+              {['Client', 'Case', 'Amount', 'Method', 'Date', 'Status', 'Notify & Actions'].map(h => (
                 <Typography key={h} sx={{ fontSize: 10, fontWeight: 800, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{h}</Typography>
               ))}
             </Box>
@@ -307,6 +361,12 @@ export default function PaymentsPage() {
                   <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#0D1B2A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {p.client_name || '—'}
                   </Typography>
+                  {/* Show email/phone hint under name */}
+                  {(p.client_email || p.client_phone) && (
+                    <Typography sx={{ fontSize: 10, color: '#9CA3AF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {p.client_email || p.client_phone}
+                    </Typography>
+                  )}
                 </Box>
 
                 {/* Case */}
@@ -315,11 +375,9 @@ export default function PaymentsPage() {
                 </Typography>
 
                 {/* Amount */}
-                <Box>
-                  <Typography sx={{ fontSize: 14, fontWeight: 800, color: '#0D1B2A' }}>
-                    ₹{Number(p.amount || 0).toLocaleString('en-IN')}
-                  </Typography>
-                </Box>
+                <Typography sx={{ fontSize: 14, fontWeight: 800, color: '#0D1B2A' }}>
+                  ₹{Number(p.amount || 0).toLocaleString('en-IN')}
+                </Typography>
 
                 {/* Method */}
                 <Box sx={{ px: 1.5, py: 0.4, borderRadius: '8px', bgcolor: '#F5F4F0', display: 'inline-flex', width: 'fit-content' }}>
@@ -336,13 +394,15 @@ export default function PaymentsPage() {
                 {/* Status */}
                 <StatusBadge status={p.status} />
 
-                {/* Actions */}
+                {/* ✅ Actions — now passes correct notify handlers */}
                 <ActionMenu
                   payment={p}
                   onEdit={handleOpenEdit}
                   onDelete={handleOpenDelete}
-                  onWhatsApp={handleWhatsApp}
-                  onEmail={handleEmail}
+                  onNotifyEmail={handleNotifyEmail}
+                  onNotifyWhatsApp={handleNotifyWhatsApp}
+                  sendingEmail={sendingEmailId === p.id}
+                  sendingWA={sendingWAId === p.id}
                 />
               </Box>
             ))}
@@ -369,34 +429,21 @@ export default function PaymentsPage() {
 
         <DialogContent sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-            {/* Client */}
             <TextField select fullWidth label="Client" name="client" value={form.client} onChange={handleChange} sx={inputSx}>
               {clients.map(c => <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>)}
             </TextField>
-
-            {/* Case */}
             <TextField select fullWidth label="Case" name="case" value={form.case} onChange={handleChange} sx={inputSx}>
               <MenuItem value=""><em>None</em></MenuItem>
               {filteredCases.map(c => <MenuItem key={c.id} value={c.id}>{c.title}</MenuItem>)}
             </TextField>
-
-            {/* Amount */}
-            <TextField fullWidth label="Amount (₹)" name="amount" value={form.amount} onChange={handleChange}
-              type="number" sx={inputSx} />
-
-            {/* Date */}
-            <TextField fullWidth label="Payment Date" type="date" name="payment_date" value={form.payment_date}
-              onChange={handleChange} InputLabelProps={{ shrink: true }} sx={inputSx} />
-
-            {/* Method */}
+            <TextField fullWidth label="Amount (₹)" name="amount" value={form.amount} onChange={handleChange} type="number" sx={inputSx} />
+            <TextField fullWidth label="Payment Date" type="date" name="payment_date" value={form.payment_date} onChange={handleChange} InputLabelProps={{ shrink: true }} sx={inputSx} />
             <TextField select fullWidth label="Payment Method" name="payment_method" value={form.payment_method} onChange={handleChange} sx={inputSx}>
               <MenuItem value="cash">💵 Cash</MenuItem>
               <MenuItem value="upi">📱 UPI</MenuItem>
               <MenuItem value="bank_transfer">🏦 Bank Transfer</MenuItem>
               <MenuItem value="cheque">📄 Cheque</MenuItem>
             </TextField>
-
-            {/* Status */}
             <TextField select fullWidth label="Status" name="status" value={form.status} onChange={handleChange} sx={inputSx}>
               <MenuItem value="paid">✅ Paid</MenuItem>
               <MenuItem value="pending">⏳ Pending</MenuItem>
@@ -404,25 +451,19 @@ export default function PaymentsPage() {
               <MenuItem value="overdue">🔴 Overdue</MenuItem>
             </TextField>
           </Box>
+          <TextField fullWidth label="Notes (optional)" name="notes" value={form.notes} onChange={handleChange} multiline rows={2} sx={inputSx} />
 
-          {/* Notes */}
-          <TextField fullWidth label="Notes (optional)" name="notes" value={form.notes} onChange={handleChange}
-            multiline rows={2} sx={inputSx} />
-
-          {/* Notification hint */}
+          {/* Hint */}
           <Box sx={{ bgcolor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '10px', px: 2, py: 1.5, display: 'flex', alignItems: 'center', gap: 1.5 }}>
             <WhatsApp sx={{ color: '#25D366', fontSize: 18, flexShrink: 0 }} />
             <Typography sx={{ fontSize: 12, color: '#065F46' }}>
-              After saving, use the <strong>WhatsApp</strong> or <strong>Email</strong> action buttons to notify the client instantly.
+              After saving, use the <strong>📧 Email</strong> or <strong>💬 WhatsApp</strong> buttons in the table to send the invoice directly to the client.
             </Typography>
           </Box>
         </DialogContent>
 
         <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
-          <Button onClick={handleCloseDialog}
-            sx={{ textTransform: 'none', color: '#9CA3AF', fontWeight: 600, borderRadius: '10px' }}>
-            Cancel
-          </Button>
+          <Button onClick={handleCloseDialog} sx={{ textTransform: 'none', color: '#9CA3AF', fontWeight: 600, borderRadius: '10px' }}>Cancel</Button>
           <Button onClick={handleSave} disabled={saving} sx={{
             bgcolor: '#0D1B2A', color: '#fff', textTransform: 'none', px: 3.5,
             borderRadius: '10px', fontWeight: 700,
@@ -457,9 +498,7 @@ export default function PaymentsPage() {
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
           <Button onClick={() => setDeleteDialog(false)} disabled={deleting}
-            sx={{ textTransform: 'none', color: '#64748B', fontWeight: 600, borderRadius: '10px' }}>
-            Cancel
-          </Button>
+            sx={{ textTransform: 'none', color: '#64748B', fontWeight: 600, borderRadius: '10px' }}>Cancel</Button>
           <Button onClick={handleConfirmDelete} disabled={deleting}
             sx={{ bgcolor: '#EF4444', color: '#fff', textTransform: 'none', px: 3, borderRadius: '10px', fontWeight: 700, '&:hover': { bgcolor: '#DC2626' } }}>
             {deleting ? <CircularProgress size={16} sx={{ color: '#fff' }} /> : 'Delete'}
@@ -467,7 +506,7 @@ export default function PaymentsPage() {
         </DialogActions>
       </Dialog>
 
-      <Snackbar open={snack.open} autoHideDuration={3500} onClose={() => setSnack(p => ({ ...p, open: false }))}
+      <Snackbar open={snack.open} autoHideDuration={4000} onClose={() => setSnack(p => ({ ...p, open: false }))}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
         <Alert severity={snack.severity} onClose={() => setSnack(p => ({ ...p, open: false }))}
           sx={{ borderRadius: '12px', fontWeight: 600 }}>

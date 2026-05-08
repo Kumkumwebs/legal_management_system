@@ -16,6 +16,8 @@ import {
 } from '@mui/icons-material';
 
 import { useAuth } from '../auth/AuthProvider';
+import NotificationBell from '../components/NotificationBell';
+
 
 const DRAWER_WIDTH = 252;
 
@@ -400,36 +402,7 @@ export default function MainLayout() {
             <Box sx={{ flex: 1 }} />
 
             {/* Notifications */}
-            <Tooltip title="Notifications" arrow>
-              <IconButton
-                sx={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: 2,
-                  bgcolor: '#f4f6f9',
-                  border: '1px solid rgba(26,46,74,0.06)',
-                  transition: 'all 0.2s',
-                  '&:hover': { bgcolor: '#eef1f5', transform: 'translateY(-1px)' },
-                }}
-              >
-                <Badge
-                  badgeContent={3}
-                  color="error"
-                  sx={{
-                    '& .MuiBadge-badge': {
-                      fontSize: '0.6rem',
-                      height: 16,
-                      minWidth: 16,
-                      borderRadius: '50%',
-                      border: '1.5px solid #fff',
-                    },
-                  }}
-                >
-                  <NotificationsRounded sx={{ color: '#546e7a', fontSize: 20 }} />
-                </Badge>
-              </IconButton>
-            </Tooltip>
-
+            <NotificationBell />
             <Box sx={{ width: 1, height: 28, bgcolor: 'rgba(26,46,74,0.1)', mx: 0.5, display: { xs: 'none', sm: 'block' } }} />
 
             {/* User Profile */}

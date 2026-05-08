@@ -27,6 +27,7 @@ export const casesAPI = {
   getOne: (id) => apiClient.get(`/cases/${id}/`),
   create: (data) => apiClient.post("/cases/", data),
   update: (id, data) => apiClient.put(`/cases/${id}/`, data),
+  delete: (id) => apiClient.delete(`/cases/${id}/`),
 };
 
 
@@ -43,8 +44,10 @@ export const documentsAPI = {
     apiClient.get(`/documents/${id}/download/`, {
       responseType: "blob",
     }),
-};
 
+  delete: (id) =>
+    apiClient.delete(`/documents/${id}/`),
+};
 
 // ─── PAYMENTS ───────────────────────────────────────────
 export const paymentsAPI = {

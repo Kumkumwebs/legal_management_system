@@ -21,6 +21,11 @@ import TasksPage from './pages/TasksPage';
 import SupportPage from './pages/SupportPage';
 import ProfilePage from './pages/ProfilePage';
 import SettingsPage from './pages/SettingsPage';
+import { PrivacyPolicyPage } from './pages/legal/PrivacyPolicyPage';
+import TermsPage from './pages/legal/TermsPage';
+import FAQPage from './pages/legal/FAQPage';
+import { FirmThemeProvider } from './context/ThemeContext';
+import BrandingSettingsPage from './pages/BrandingSettingsPage';
 
 
 function AppRoutes() {
@@ -58,6 +63,7 @@ function AppRoutes() {
         <Route path="profile" element={<ProfilePage />} />
         <Route path="tasks" element={<TasksPage />} />
         <Route path="support" element={<SupportPage />} />
+        <Route path="brand_setting" element={<BrandingSettingsPage />} />  
         {/* <Route path="reports" element={<Re />} /> */}
         <Route path="team" element={<TeamPage />} />
         <Route path="cases/:caseId/hearings" element={<HearingsPage />} />
@@ -70,6 +76,9 @@ function AppRoutes() {
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
+      <Route path="/privacy" element={<PrivacyPolicyPage />} />
+      <Route path="/terms"   element={<TermsPage />} />
+      <Route path="/faq"     element={<FAQPage />} />
 
     </Routes>
   );
@@ -80,9 +89,12 @@ export default function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AuthProvider>
-        <BrowserRouter>
+        <FirmThemeProvider>
+                 <BrowserRouter>
           <AppRoutes />
         </BrowserRouter>
+        </FirmThemeProvider>
+ 
       </AuthProvider>
     </ThemeProvider>
   );

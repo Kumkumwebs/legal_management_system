@@ -148,3 +148,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 FIREBASE_CREDENTIALS_PATH = str(BASE_DIR / "firebase-service-account.json")
 FRONTEND_URL = "http://localhost:5173"
+
+
+RAZORPAY_KEY_ID = 'rzp_test_1DP5mmOlF5G5ag'
+RAZORPAY_KEY_SECRET = 'your_razorpay_key_secret'

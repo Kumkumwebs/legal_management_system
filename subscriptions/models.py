@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 from firms.models import Firm
 from legal_management_system.utils.base import BaseModel
 from django.utils import timezone
@@ -76,3 +77,19 @@ class FirmSubscription(BaseModel):
     def __str__(self):
         plan_name = self.plan.name if self.plan else "No Plan"
         return f"{self.firm.name} - {plan_name}"
+    
+    
+class RazorpayOrder(models.Model):
+    user                = models.ForeignKey(User, on_delete=models.CASCADE)
+    plan                = models.ForeignKey(SubscriptionPlan, on_delete=models.CASCADE)
+    razorpay_order_id   = models.CharField(max_length=100, unique=True)
+    razorpay_payment_id = models.CharField(max_length=100, blank=True)
+    amount              = models.DecimalField(max_digits=10, decimal_places=2)
+    gst_amount          = models.DecimalField(max_digits=10, decimal_places=2)
+    billing_cycle       = models.CharField(max_length=10, default='monthly')
+    status              = models.CharField(max_length=20, default='created')
+    created_at          = models.DateTimeField(auto_now_add=True)
+
+
+    def __str__(self):
+        return f"Order {self.razorpay_order_id} - {self.plan.name} - {self.status}" 

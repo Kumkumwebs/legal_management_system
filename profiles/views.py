@@ -102,13 +102,19 @@ class FirmProfileView(APIView):
             return Response({'error': 'Admin access required'}, status=403)
 
         firm = profile.firm
-        updatable = ['name', 'email', 'phone', 'address', 'city', 'state', 'pincode', 'gstin', 'bar_registration']
+        updatable = ['name', 'email', 'phone', 'address', 'city', 'state', 'pincode', 'gstin', 'bar_registration', 'theme_color', 'accent_color', 'font_family', 'sidebar_dark',
+    'website_template', 'website_enabled',
+    'tagline', 'about_text', 'practice_areas',
+    'website_phone', 'website_email', 'whatsapp_number',]
         for field in updatable:
             if field in request.data:
                 setattr(firm, field, request.data[field])
 
         if 'logo' in request.FILES:
             firm.logo = request.FILES['logo']
+        if 'hero_image' in request.FILES:
+            firm.hero_image = request.FILES['hero_image']
+
 
         firm.save()
         return Response({'message': 'Firm profile updated successfully'})

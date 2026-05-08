@@ -1,5 +1,3 @@
-from django.core.mail import EmailMultiAlternatives
-from django.template.loader import render_to_string
 from django.conf import settings
 
 from rest_framework.decorators import action
@@ -10,6 +8,9 @@ from legal_management_system.utils.views import FirmBaseViewSet
 from .models import Payment
 from .serializers import PaymentSerializer
 from accounts.permissions import IsAdmin
+
+# ✅ Import your existing email function directly
+from email_service.tasks_email import send_client_invoice_email
 
 
 class PaymentViewSet(FirmBaseViewSet):
@@ -27,21 +28,9 @@ class PaymentViewSet(FirmBaseViewSet):
     # ─────────────────────────────────────────────────────────
     # 📧 SEND EMAIL INVOICE  →  POST /payments/{id}/notify-email/
     #
-    # Uses your existing HTML template.
-    # Template path: email_service/templates/emails/payment_invoice.html
-    #   (or wherever your template lives — update the path below)
-    #
-    # Template context variables passed:
-    #   - client_name
-    #   - amount
-    #   - payment_date
-    #   - case_title
-    #   - payment_method
-    #   - status
-    #   - notes
-    #   - firm_name
-    #   - firm_email
-    #   - firm_phone
+    # Calls your existing: send_client_invoice_email(
+    #   client_email, client_name, payment, case_title, firm_name
+    # )
     # ─────────────────────────────────────────────────────────
     @action(detail=True, methods=['post'], url_path='notify-email')
     def notify_email(self, request, pk=None):
@@ -54,72 +43,21 @@ class PaymentViewSet(FirmBaseViewSet):
                 status=400
             )
 
-        # ── Firm info ──
-        firm      = None
         firm_name = "HP HCMS"
-        firm_email = settings.DEFAULT_FROM_EMAIL
-        firm_phone = ""
         if hasattr(request.user, "userprofile") and request.user.userprofile.firm:
-            firm       = request.user.userprofile.firm
-            firm_name  = firm.name
-            firm_email = firm.email or settings.DEFAULT_FROM_EMAIL
-            firm_phone = getattr(firm, "phone", "")
+            firm_name = request.user.userprofile.firm.name
 
-        # ── Build context for your template ──
-        context = {
-            "client_name":     client.name,
-            "amount":          f"₹{payment.amount}",
-            "payment_date":    payment.payment_date.strftime('%d %B %Y') if payment.payment_date else "N/A",
-            "case_title":      payment.case.title if payment.case else "General",
-            "payment_method":  (payment.payment_method or "N/A").replace("_", " ").title(),
-            "status":          (payment.status or "pending").title(),
-            "notes":           payment.notes or "",
-            "firm_name":       firm_name,
-            "firm_email":      firm_email,
-            "firm_phone":      firm_phone,
-        }
-
-        subject = f"Payment Invoice — {context['amount']} | {firm_name}"
-
-        # ── Render HTML using your existing template ──
-        # 🔧 UPDATE THIS PATH to match your actual template file location:
-        #    e.g. "emails/payment_invoice.html"  if stored in email_service/templates/emails/
-        #    e.g. "payment_invoice.html"         if stored in email_service/templates/
-        try:
-            html_content = render_to_string("emails/payment_invoice.html", context)
-        except Exception:
-            # Fallback: try alternate common template paths
-            try:
-                html_content = render_to_string("payment_invoice.html", context)
-            except Exception as e:
-                return Response(
-                    {"error": f"Template not found. Check template path. Details: {str(e)}"},
-                    status=500
-                )
-
-        # Plain-text fallback
-        text_content = (
-            f"Dear {context['client_name']},\n\n"
-            f"Payment Details:\n"
-            f"Amount: {context['amount']}\n"
-            f"Date: {context['payment_date']}\n"
-            f"Case: {context['case_title']}\n"
-            f"Method: {context['payment_method']}\n"
-            f"Status: {context['status']}\n"
-            f"{'Notes: ' + context['notes'] if context['notes'] else ''}\n\n"
-            f"Regards,\n{firm_name}"
-        )
+        case_title = payment.case.title if payment.case else "General"
 
         try:
-            email = EmailMultiAlternatives(
-                subject=subject,
-                body=text_content,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                to=[client.email],
+            # ✅ Calls your existing branded template email
+            send_client_invoice_email(
+                client_email=client.email,
+                client_name=client.name,
+                payment=payment,
+                case_title=case_title,
+                firm_name=firm_name,
             )
-            email.attach_alternative(html_content, "text/html")
-            email.send(fail_silently=False)
-
             return Response({"message": f"Invoice emailed to {client.email}"})
 
         except Exception as e:
@@ -146,34 +84,41 @@ class PaymentViewSet(FirmBaseViewSet):
                 status=400
             )
 
-        # Normalize phone number
+        # Normalize phone number — ensure country code
         phone = client.phone.strip().replace(" ", "").replace("-", "")
         if not phone.startswith("+"):
-            phone = "+91" + phone   # Default to India country code
+            phone = "+91" + phone   # Default to India
 
         firm_name = "HP HCMS"
         if hasattr(request.user, "userprofile") and request.user.userprofile.firm:
             firm_name = request.user.userprofile.firm.name
 
-        amount     = f"₹{payment.amount}"
-        date       = payment.payment_date.strftime('%d %b %Y') if payment.payment_date else "N/A"
-        case_title = payment.case.title if payment.case else "General"
-        method     = (payment.payment_method or "N/A").replace("_", " ").title()
-        status     = (payment.status or "pending").title()
+        invoice_number = f"INV-{payment.id:06d}"
+        amount         = f"₹{payment.amount:,.2f}"
+        date           = payment.created_at.strftime('%d %B %Y') if hasattr(payment.created_at, 'strftime') else str(payment.created_at)
+        case_title     = payment.case.title if payment.case else "General"
+        method         = (getattr(payment, 'payment_method', 'N/A') or 'N/A').replace("_", " ").title()
+        status         = (payment.status or "pending").title()
 
+        # WhatsApp message mirrors your invoice email template content
         message = (
-            f"*Payment Invoice — {firm_name}*\n\n"
+            f"🏛️ *{firm_name}*\n"
+            f"━━━━━━━━━━━━━━━━━━\n"
+            f"*Payment Invoice*\n"
+            f"━━━━━━━━━━━━━━━━━━\n\n"
             f"Dear *{client.name}*,\n\n"
-            f"Here are your payment details:\n"
-            f"━━━━━━━━━━━━━━━━\n"
-            f"📁 *Case:* {case_title}\n"
-            f"💰 *Amount:* {amount}\n"
-            f"📅 *Date:* {date}\n"
-            f"💳 *Method:* {method}\n"
-            f"📊 *Status:* {status}\n"
-            f"━━━━━━━━━━━━━━━━\n"
-            + (f"📝 *Notes:* {payment.notes}\n" if payment.notes else "")
-            + f"\nFor any queries, contact us.\n\n— {firm_name}"
+            f"Please find your payment invoice for legal services rendered.\n\n"
+            f"📋 *Invoice Details:*\n"
+            f"• Invoice No.: *{invoice_number}*\n"
+            f"• Client: {client.name}\n"
+            f"• Case: {case_title}\n"
+            f"• Date: {date}\n"
+            f"• Method: {method}\n"
+            f"• Status: ✅ {status}\n\n"
+            f"💰 *Total Amount: {amount}*\n\n"
+            f"━━━━━━━━━━━━━━━━━━\n"
+            f"This invoice was issued by *{firm_name}*.\n"
+            f"For any queries, please contact your legal team."
         )
 
         try:

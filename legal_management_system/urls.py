@@ -11,8 +11,11 @@ from clients.views import ClientViewSet
 from cases.views import CaseViewSet, HearingViewSet
 from documents.views import DocumentViewSet
 from firms.views import FirmViewSet
+from firms.website_serializer import FirmWebsiteSettingsView, PublicFirmWebsiteView, PublicFirmWebsiteView
+from firms.website_serializer import FirmWebsiteSettingsView
 from payments.views import PaymentViewSet
 from messaging.views import MessageViewSet
+from subscriptions.razorpay_views import CreateOrderView, VerifyPaymentView
 from subscriptions.views import SubscriptionPlanViewSet, FirmSubscriptionViewSet
 
 # Docs
@@ -65,6 +68,10 @@ urlpatterns = [
     # 🛠 Admin
     path('admin/', admin.site.urls),
     path('api/admin/', include('adminpanel.urls')),
+    path('api/website/<int:firm_id>/',     PublicFirmWebsiteView.as_view()),
+    path('api/profile/firm/website/',      FirmWebsiteSettingsView.as_view()),
+    path('subscriptions/create-order/', CreateOrderView.as_view()),
+    path('subscriptions/verify-payment/', VerifyPaymentView.as_view()),
 ]
 
 if settings.DEBUG:
