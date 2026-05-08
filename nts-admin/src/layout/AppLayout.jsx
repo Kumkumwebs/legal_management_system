@@ -11,61 +11,77 @@ import {
   PaymentsRounded, GroupsRounded, SearchRounded, NotificationsRounded,
   MenuRounded, LogoutRounded, AccountCircleRounded,
   KeyboardArrowDownRounded, BalanceRounded,
-  PaymentRounded,
-  Payment
+  AssignmentRounded, SupportAgentRounded, SettingsRounded,
+  CalendarMonthRounded, BarChartRounded
 } from '@mui/icons-material';
 
 import { useAuth } from '../auth/AuthProvider';
 
 const DRAWER_WIDTH = 252;
 
+// ✅ FIXED: single consistent name
 const MENU_CONFIG = {
   super_admin: [
     'Dashboard',
     'Firms',
     'Plans',
-    'Subscriptions'
+    'Subscriptions',
+    'Support',
+    'Settings',
   ],
-
   admin: [
     'Dashboard',
     'Clients',
     'Cases',
-    'Hearings',
     'Documents',
     'Payments',
     'Team',
+    'Tasks',
     'Plans',
-    'Reports'
+    'Support',
+    'Settings',
   ],
-
   lawyer: [
     'Dashboard',
     'Cases',
     'Hearings',
     'Documents',
-    'Clients' 
+    'Clients',
+    'Tasks',
+    'Support',
+    'Profile',
+    'Settings',
   ],
-
   staff: [
     'Dashboard',
     'Clients',
     'Cases',
     'Documents',
-    'Payments'
+    'Payments',
+    'Tasks',
+    'Support',
+    'Profile',
+    'Settings',
   ]
 };
 
+// ✅ FIXED: all new items added
 const navItems = [
-  { label: 'Dashboard', icon: <DashboardRounded />, path: '/' },
-  { label: 'Clients', icon: <PeopleRounded />, path: '/clients' },
-  { label: 'Firms', icon: <BalanceRounded />, path: '/firms' },
-  { label: 'Cases', icon: <GavelRounded />, path: '/cases' },
-  { label: 'Documents', icon: <FolderRounded />, path: '/documents' },
-  { label: 'Payments', icon: <PaymentsRounded />, path: '/payments' },
-  { label: 'Team', icon: <GroupsRounded />, path: '/team' },
-  { label: 'Plans', icon: <PaymentsRounded />, path: '/plans' },
-  
+  { label: 'Dashboard',   icon: <DashboardRounded />,     path: '/' },
+  { label: 'Clients',     icon: <PeopleRounded />,         path: '/clients' },
+  { label: 'Firms',       icon: <BalanceRounded />,        path: '/firms' },
+  { label: 'Cases',       icon: <GavelRounded />,          path: '/cases' },
+  { label: 'Hearings',    icon: <CalendarMonthRounded />,  path: '/hearings' },
+  { label: 'Documents',   icon: <FolderRounded />,         path: '/documents' },
+  { label: 'Payments',    icon: <PaymentsRounded />,       path: '/payments' },
+  { label: 'Team',        icon: <GroupsRounded />,         path: '/team' },
+  { label: 'Tasks',       icon: <AssignmentRounded />,     path: '/tasks' },
+  { label: 'Plans',       icon: <PaymentsRounded />,       path: '/plans' },
+  { label: 'Reports',     icon: <BarChartRounded />,       path: '/reports' },
+  { label: 'Subscriptions', icon: <PaymentsRounded />,    path: '/subscriptions' },
+  { label: 'Support',     icon: <SupportAgentRounded />,   path: '/support' },
+  { label: 'Profile',     icon: <AccountCircleRounded />,  path: '/profile' },
+  { label: 'Settings',    icon: <SettingsRounded />,       path: '/settings' },
 ];
 
 const ROLE_LABELS = {
@@ -90,9 +106,10 @@ export default function MainLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
 
-  const role = (user?.role || "staff").toLowerCase();
+  const role = (user?.role || 'staff').toLowerCase();
   const roleColor = ROLE_COLORS[role] || '#b0bec5';
 
+  // ✅ FIXED: uses MENU_CONFIG (not MENU_CONFIG_UPDATED)
   const allowedMenu = navItems.filter(item => {
     const config = MENU_CONFIG[role] || [];
     return config.includes(item.label);
@@ -144,10 +161,10 @@ export default function MainLayout() {
                 lineHeight: 1.2,
               }}
             >
-              NTS Legal Pro
+              HP HCMS
             </Typography>
             <Typography sx={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.1em', fontWeight: 500 }}>
-              LEGAL MANAGEMENT
+              HIGHCOURT MANAGEMENT
             </Typography>
           </Box>
         </Box>
@@ -156,7 +173,7 @@ export default function MainLayout() {
       <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)', mx: 2 }} />
 
       {/* ── Navigation ── */}
-      <Box sx={{ px: 1.5, pt: 1.5, flex: 1 }}>
+      <Box sx={{ px: 1.5, pt: 1.5, flex: 1, overflowY: 'auto' }}>
         <Typography
           sx={{
             fontSize: '0.62rem',
@@ -413,7 +430,6 @@ export default function MainLayout() {
               </IconButton>
             </Tooltip>
 
-            {/* Divider */}
             <Box sx={{ width: 1, height: 28, bgcolor: 'rgba(26,46,74,0.1)', mx: 0.5, display: { xs: 'none', sm: 'block' } }} />
 
             {/* User Profile */}
@@ -475,7 +491,6 @@ export default function MainLayout() {
                 },
               }}
             >
-              {/* User header */}
               <Box sx={{ px: 2, py: 1.5, borderBottom: '1px solid rgba(26,46,74,0.08)', bgcolor: '#fafbfc' }}>
                 <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#1a2e4a' }}>
                   {user?.username}
@@ -486,14 +501,23 @@ export default function MainLayout() {
               </Box>
 
               <MenuItem
-                disabled
-                sx={{
-                  py: 1.2, px: 2, gap: 1.5,
-                  '&.Mui-disabled': { opacity: 0.55 },
-                }}
+                component={Link}
+                to="/profile"
+                onClick={() => setAnchorEl(null)}
+                sx={{ py: 1.2, px: 2, gap: 1.5 }}
               >
                 <AccountCircleRounded sx={{ fontSize: 18 }} />
                 <Typography variant="body2" sx={{ fontWeight: 500 }}>Profile</Typography>
+              </MenuItem>
+
+              <MenuItem
+                component={Link}
+                to="/settings"
+                onClick={() => setAnchorEl(null)}
+                sx={{ py: 1.2, px: 2, gap: 1.5 }}
+              >
+                <SettingsRounded sx={{ fontSize: 18 }} />
+                <Typography variant="body2" sx={{ fontWeight: 500 }}>Settings</Typography>
               </MenuItem>
 
               <Box sx={{ mx: 1.5, height: 1, bgcolor: 'rgba(26,46,74,0.06)' }} />
@@ -503,7 +527,6 @@ export default function MainLayout() {
                 sx={{
                   py: 1.2, px: 2, gap: 1.5,
                   color: '#c62828',
-                  transition: 'all 0.15s',
                   '&:hover': { bgcolor: '#ffebee' },
                 }}
               >

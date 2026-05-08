@@ -51,6 +51,16 @@ urlpatterns = [
     path('api/auth/invite/firm/', InviteFirmUserView.as_view()),
     path('api/auth/invite/platform/', InvitePlatformUserView.as_view()),
     path('api/auth/accept-invite/', AcceptInviteView.as_view()),
+    
+     # NEW FEATURES
+    path('api/', include('tasks.urls')),
+    path('api/', include('support.urls')),
+ 
+    # Profile endpoints
+    path('api/profile/', include('profiles.urls')),
+ 
+    # Notification preferences
+    path('api/notifications/', include('notifications.urls')),
 
     # 🛠 Admin
     path('admin/', admin.site.urls),

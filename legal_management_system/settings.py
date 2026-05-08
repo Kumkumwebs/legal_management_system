@@ -34,6 +34,9 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'corsheaders',
+     'tasks',
+    'support',
+    'email_service'
 ]
 
 # ───────────────────────────────────────────────
@@ -144,3 +147,4 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 FIREBASE_CREDENTIALS_PATH = str(BASE_DIR / "firebase-service-account.json")
+FRONTEND_URL = "http://localhost:5173"

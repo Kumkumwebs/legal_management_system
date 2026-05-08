@@ -17,6 +17,11 @@ import AcceptInvite from './pages/AcceptInvite';
 import PlansPage from "./pages/Plans";
 import AdminPlansPage from "./pages/AdminPlansPage";
 import HearingsPage from "./pages/HearingsPage";
+import TasksPage from './pages/TasksPage';
+import SupportPage from './pages/SupportPage';
+import ProfilePage from './pages/ProfilePage';
+import SettingsPage from './pages/SettingsPage';
+
 
 function AppRoutes() {
   const { user } = useAuth();
@@ -49,6 +54,11 @@ function AppRoutes() {
         <Route path="clients" element={<ClientsPage />} />
         <Route path="documents" element={<DocumentsPage />} />
         <Route path="payments" element={<PaymentsPage />} />
+        <Route path="settings" element={<SettingsPage />} />
+        <Route path="profile" element={<ProfilePage />} />
+        <Route path="tasks" element={<TasksPage />} />
+        <Route path="support" element={<SupportPage />} />
+        {/* <Route path="reports" element={<Re />} /> */}
         <Route path="team" element={<TeamPage />} />
         <Route path="cases/:caseId/hearings" element={<HearingsPage />} />
 

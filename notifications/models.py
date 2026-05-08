@@ -49,3 +49,34 @@ class NotificationToken(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.device_type}"
+
+class NotificationPreference(models.Model):
+    """Per-user notification preferences"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='notification_prefs')
+ 
+    # Email notifications
+    email_enabled = models.BooleanField(default=True)
+    email_task_assigned = models.BooleanField(default=True)
+    email_hearing_reminder = models.BooleanField(default=True)
+    email_ticket_update = models.BooleanField(default=True)
+    email_payment_receipt = models.BooleanField(default=True)
+    email_plan_expiry = models.BooleanField(default=True)
+ 
+    # Push notifications
+    push_enabled = models.BooleanField(default=True)
+    push_task_assigned = models.BooleanField(default=True)
+    push_hearing_reminder = models.BooleanField(default=True)
+    push_ticket_update = models.BooleanField(default=True)
+    push_case_update = models.BooleanField(default=True)
+ 
+    # WhatsApp notifications (enabled by default as per requirement)
+    whatsapp_enabled = models.BooleanField(default=True)
+    whatsapp_task_assigned = models.BooleanField(default=True)
+    whatsapp_hearing_reminder = models.BooleanField(default=True)
+    whatsapp_payment_receipt = models.BooleanField(default=True)
+    whatsapp_ticket_update = models.BooleanField(default=True)
+ 
+    updated_at = models.DateTimeField(auto_now=True)
+ 
+    def __str__(self):
+        return f"NotifPrefs({self.user.username})"
