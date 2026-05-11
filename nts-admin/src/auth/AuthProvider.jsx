@@ -19,9 +19,15 @@ export function AuthProvider({ children }) {
   }, []);
 
   const logout = useCallback(() => {
+    // ✅ Clear auth tokens
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('user');
+
+    // ✅ Clear firm-specific data so next login starts fresh
+    localStorage.removeItem('firm_theme');
+    localStorage.removeItem('fcm_saved');
+
     setUser(null);
   }, []);
 

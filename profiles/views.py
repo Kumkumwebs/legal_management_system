@@ -1,3 +1,4 @@
+# profiles/views.py
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
@@ -10,7 +11,6 @@ from .serializers import ProfileSerializer, FirmProfileSerializer
 
 
 class MyProfileView(APIView):
-    """GET/PATCH current user's profile"""
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
@@ -26,14 +26,16 @@ class MyProfileView(APIView):
             'first_name': user.first_name,
             'last_name': user.last_name,
             'role': profile.role if profile else None,
-            'profile_picture': request.build_absolute_uri(profile.profile_picture.url) if profile and profile.profile_picture else None,
+            'profile_picture': request.build_absolute_uri(profile.profile_picture.url)
+                               if profile and profile.profile_picture else None,
             'firm': {
                 'id': firm.id,
                 'name': firm.name,
                 'email': firm.email if hasattr(firm, 'email') else '',
                 'phone': firm.phone if hasattr(firm, 'phone') else '',
                 'address': firm.address if hasattr(firm, 'address') else '',
-                'logo': request.build_absolute_uri(firm.logo.url) if hasattr(firm, 'logo') and firm.logo else None,
+                'logo': request.build_absolute_uri(firm.logo.url)
+                        if getattr(firm, 'logo', None) else None,
             } if firm else None
         }
         return Response(data)
@@ -42,18 +44,15 @@ class MyProfileView(APIView):
         user = request.user
         profile = getattr(user, 'userprofile', None)
 
-        # Update user fields
         for field in ['first_name', 'last_name', 'email']:
             if field in request.data:
                 setattr(user, field, request.data[field])
         user.save()
 
-        # Update profile picture
         if 'profile_picture' in request.FILES and profile:
             profile.profile_picture = request.FILES['profile_picture']
             profile.save()
 
-        # Password change
         new_password = request.data.get('new_password')
         old_password = request.data.get('old_password')
         if new_password and old_password:
@@ -66,7 +65,6 @@ class MyProfileView(APIView):
 
 
 class FirmProfileView(APIView):
-    """GET/PATCH firm details — admin only"""
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
@@ -80,7 +78,7 @@ class FirmProfileView(APIView):
         if not firm:
             return Response({'error': 'Firm not found'}, status=404)
 
-        data = {
+        return Response({
             'id': firm.id,
             'name': firm.name,
             'email': getattr(firm, 'email', ''),
@@ -91,10 +89,15 @@ class FirmProfileView(APIView):
             'pincode': getattr(firm, 'pincode', ''),
             'gstin': getattr(firm, 'gstin', ''),
             'bar_registration': getattr(firm, 'bar_registration', ''),
-            'logo': request.build_absolute_uri(firm.logo.url) if hasattr(firm, 'logo') and firm.logo else None,
-            'created_at': firm.created_at if hasattr(firm, 'created_at') else None,
-        }
-        return Response(data)
+            'logo': request.build_absolute_uri(firm.logo.url)
+                    if getattr(firm, 'logo', None) else None,
+            'created_at': getattr(firm, 'created_at', None),
+            # ✅ Theme fields - now saved and returned from DB
+            'theme_color':  getattr(firm, 'theme_color',  '#0D1B2A'),
+            'accent_color': getattr(firm, 'accent_color', '#C9A84C'),
+            'font_family':  getattr(firm, 'font_family',  'DM Sans, sans-serif'),
+            'sidebar_dark': getattr(firm, 'sidebar_dark', True),
+        })
 
     def patch(self, request):
         profile = getattr(request.user, 'userprofile', None)
@@ -102,10 +105,14 @@ class FirmProfileView(APIView):
             return Response({'error': 'Admin access required'}, status=403)
 
         firm = profile.firm
-        updatable = ['name', 'email', 'phone', 'address', 'city', 'state', 'pincode', 'gstin', 'bar_registration', 'theme_color', 'accent_color', 'font_family', 'sidebar_dark',
-    'website_template', 'website_enabled',
-    'tagline', 'about_text', 'practice_areas',
-    'website_phone', 'website_email', 'whatsapp_number',]
+        updatable = [
+            'name', 'email', 'phone', 'address', 'city', 'state',
+            'pincode', 'gstin', 'bar_registration',
+            'theme_color', 'accent_color', 'font_family', 'sidebar_dark',
+            'website_template', 'website_enabled',
+            'tagline', 'about_text', 'practice_areas',
+            'website_phone', 'website_email', 'whatsapp_number',
+        ]
         for field in updatable:
             if field in request.data:
                 setattr(firm, field, request.data[field])
@@ -114,7 +121,6 @@ class FirmProfileView(APIView):
             firm.logo = request.FILES['logo']
         if 'hero_image' in request.FILES:
             firm.hero_image = request.FILES['hero_image']
-
 
         firm.save()
         return Response({'message': 'Firm profile updated successfully'})

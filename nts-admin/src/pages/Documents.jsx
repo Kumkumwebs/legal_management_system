@@ -97,7 +97,7 @@ const DocCard = ({ doc, onPreview, onDownload, onDelete }) => {
           <Tooltip title="Preview">
             <IconButton size="small" onClick={() => onPreview(doc)} sx={{
               color: '#0D1B2A', bgcolor: '#F5F4F0', borderRadius: '8px',
-              '&:hover': { bgcolor: '#E8E4DC' }, flex: 1, borderRadius: '8px',
+              '&:hover': { bgcolor: '#E8E4DC' }, flex: 1,
             }}>
               <VisibilityRounded sx={{ fontSize: 16 }} />
             </IconButton>

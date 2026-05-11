@@ -13,38 +13,45 @@ class Firm(BaseModel):
     state = models.CharField(max_length=100)
     pincode = models.CharField(max_length=10)
 
-    # 🔥 Legal Fields (India)
+    # Legal Fields
     pan_number = models.CharField(max_length=10, unique=True)
-    gst_number = models.CharField(
-        max_length=15,
-        null=True,
-        blank=True,
-        unique=True
-    )
+    gst_number = models.CharField(max_length=15, null=True, blank=True, unique=True)
 
-    # 🔐 System fields
+    # System fields
     is_active = models.BooleanField(default=True)
     is_blocked = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
 
-    # 📄 Agreement (optional)
-    agreement_file = models.FileField(
-        upload_to='firm_agreements/',
-        null=True,
-        blank=True
-    )
+    # Agreement
+    agreement_file = models.FileField(upload_to='firm_agreements/', null=True, blank=True)
+
+    # ✅ Branding fields (NEW)
+    logo         = models.ImageField(upload_to='firm_logos/', null=True, blank=True)
+    theme_color  = models.CharField(max_length=20, default='#0D1B2A')
+    accent_color = models.CharField(max_length=20, default='#C9A84C')
+    font_family  = models.CharField(max_length=100, default='DM Sans, sans-serif')
+    sidebar_dark = models.BooleanField(default=True)
+
+    # ✅ Website fields (NEW)
+    tagline          = models.CharField(max_length=200, blank=True, default='')
+    about_text       = models.TextField(blank=True, default='')
+    practice_areas   = models.JSONField(default=list, blank=True)
+    website_phone    = models.CharField(max_length=20, blank=True, default='')
+    website_email    = models.EmailField(blank=True, default='')
+    whatsapp_number  = models.CharField(max_length=20, blank=True, default='')
+    bar_registration = models.CharField(max_length=100, blank=True, default='')
+    gstin            = models.CharField(max_length=20, blank=True, default='')
+    hero_image       = models.ImageField(upload_to='firm_hero/', null=True, blank=True)
+    website_template = models.CharField(max_length=30, default='classic', blank=True)
+    website_enabled  = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
-        # 🔥 Normalize before saving
         if self.pan_number:
             self.pan_number = self.pan_number.upper().strip()
-
         if self.gst_number:
             self.gst_number = self.gst_number.upper().strip()
-
         if self.email:
             self.email = self.email.lower().strip()
-
         super().save(*args, **kwargs)
 
     def __str__(self):

@@ -13,7 +13,6 @@ const apiClient = axios.create({
 // ================= REQUEST INTERCEPTOR =================
 apiClient.interceptors.request.use(
   (config) => {
-    // 🔥 Support BOTH JWT + Token (safe)
     const accessToken = localStorage.getItem("access_token");
     const token = localStorage.getItem("token");
 
@@ -35,24 +34,25 @@ apiClient.interceptors.response.use(
   (error) => {
     const status = error.response?.status;
 
-    // 🔥 Unauthorized → logout
+    // ✅ Unauthorized → logout only if NOT already on login page
     if (status === 401) {
-      console.warn("Unauthorized - logging out");
-
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-
-      window.location.href = "/login";
+      const isOnLoginPage = window.location.pathname === '/login';
+      if (!isOnLoginPage) {
+        console.warn("Unauthorized - logging out");
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        window.location.href = "/login";
+      }
     }
 
-    // 🔥 Forbidden (permission issue)
+    // Forbidden (permission issue)
     if (status === 403) {
       console.warn("Forbidden - permission denied");
     }
 
-    // 🔥 Debug 400 errors (very useful)
+    // Debug 400 errors
     if (status === 400) {
       console.error("Bad Request:", error.response.data);
     }
@@ -62,13 +62,11 @@ apiClient.interceptors.response.use(
 );
 
 export default apiClient;
+
+
 // ─── PLANS ──────────────────────────────────────────────
-
-
 export const plansAPI = {
   getAll: () => apiClient.get("/plans/"),
-
   subscribe: (id) => apiClient.post(`/plans/${id}/subscribe/`, {}),
-
   getActive: () => apiClient.get("/subscriptions/active/"),
 };

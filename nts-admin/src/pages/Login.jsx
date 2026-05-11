@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box, Card, CardContent, TextField, Button, Typography, Alert,
@@ -11,17 +11,22 @@ const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
-  const { login, loading, error, user } = useAuth();
+  const [localError, setLocalError] = useState('');
+  const { login, loading } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (user) navigate('/dashboard', { replace: true });
-  }, [user, navigate]);
+  // ✅ REMOVED useEffect redirect — App.jsx already handles it via:
+  //    user ? <Navigate to="/" replace /> : <LoginPage />
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const ok = await login(username, password);
-    if (ok) navigate('/dashboard', { replace: true });
+    setLocalError('');
+    try {
+      const ok = await login(username, password);
+      if (ok) navigate('/', { replace: true }); // ✅ Fixed: '/' not '/dashboard'
+    } catch (err) {
+      setLocalError(err?.response?.data?.detail || 'Invalid username or password');
+    }
   };
 
   return (
@@ -33,9 +38,7 @@ const LoginPage = () => {
       overflow: 'hidden',
     }}>
 
-      {/* ── Decorative shapes — zIndex:-1 so they NEVER cover any content ── */}
-
-      {/* Top-left: small navy quarter-circle, safely tucked in corner */}
+      {/* ── Decorative shapes ── */}
       <Box sx={{
         position: 'absolute', top: -80, left: -80,
         width: 220, height: 220, borderRadius: '50%',
@@ -54,8 +57,6 @@ const LoginPage = () => {
         background: '#C9A84C',
         zIndex: -1, pointerEvents: 'none',
       }} />
-
-      {/* Bottom-right: small rotated navy square, safely tucked in corner */}
       <Box sx={{
         position: 'absolute', bottom: -60, right: -60,
         width: 200, height: 200, borderRadius: '24px',
@@ -68,16 +69,12 @@ const LoginPage = () => {
         border: '1.5px solid rgba(201,168,76,0.4)', transform: 'rotate(10deg)',
         zIndex: -1, pointerEvents: 'none',
       }} />
-
-      {/* Bottom-left: faint gold arc */}
       <Box sx={{
         position: 'absolute', bottom: 60, left: -40,
         width: 130, height: 130, borderRadius: '50%',
         border: '1px solid rgba(201,168,76,0.2)',
         zIndex: -1, pointerEvents: 'none',
       }} />
-
-      {/* Top-right: faint large outline circle */}
       <Box sx={{
         position: 'absolute', top: -50, right: '28%',
         width: 160, height: 160, borderRadius: '50%',
@@ -118,7 +115,7 @@ const LoginPage = () => {
           </Box>
         </Box>
 
-        {/* Headline — merged into 2 lines so it stays compact and fully visible */}
+        {/* Headline */}
         <Box sx={{ mb: 3.5 }}>
           <Typography sx={{
             fontFamily: '"DM Serif Display", serif',
@@ -205,7 +202,7 @@ const LoginPage = () => {
           overflow: 'visible',
           position: 'relative',
         }}>
-          {/* Gold stripe at top of card */}
+          {/* Gold stripe */}
           <Box sx={{
             position: 'absolute',
             top: 0, left: 32, right: 32,
@@ -231,7 +228,7 @@ const LoginPage = () => {
               </Typography>
             </Box>
 
-            {/* Lock icon badge (desktop only) */}
+            {/* Lock icon badge */}
             <Box sx={{ display: { xs: 'none', lg: 'flex' }, mb: 3 }}>
               <Box sx={{
                 width: 44, height: 44, borderRadius: '12px',
@@ -258,13 +255,13 @@ const LoginPage = () => {
             </Box>
 
             {/* Error alert */}
-            {error && (
+            {localError && (
               <Alert severity="error" sx={{
                 mb: 3, borderRadius: '12px',
                 border: '1px solid #FECACA', background: '#FEF2F2',
                 '& .MuiAlert-icon': { color: '#EF4444' },
               }}>
-                {error}
+                {localError}
               </Alert>
             )}
 

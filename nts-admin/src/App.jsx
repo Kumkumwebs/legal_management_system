@@ -38,6 +38,7 @@ function AppRoutes() {
     <Routes>
 
       {/* 🔓 PUBLIC */}
+      {/* ✅ Only redirect to '/' if user is already logged in */}
       <Route
         path="/login"
         element={user ? <Navigate to="/" replace /> : <LoginPage />}
@@ -63,8 +64,7 @@ function AppRoutes() {
         <Route path="profile" element={<ProfilePage />} />
         <Route path="tasks" element={<TasksPage />} />
         <Route path="support" element={<SupportPage />} />
-        <Route path="brand_setting" element={<BrandingSettingsPage />} />  
-        {/* <Route path="reports" element={<Re />} /> */}
+        <Route path="brand_setting" element={<BrandingSettingsPage />} />
         <Route path="team" element={<TeamPage />} />
         <Route path="cases/:caseId/hearings" element={<HearingsPage />} />
 
@@ -74,11 +74,17 @@ function AppRoutes() {
           element={isSuperAdmin ? <AdminPlansPage /> : <PlansPage />}
         />
 
+        {/* ✅ Catch-all inside protected routes → redirect to dashboard */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
+
+      {/* 🔓 PUBLIC LEGAL PAGES */}
       <Route path="/privacy" element={<PrivacyPolicyPage />} />
-      <Route path="/terms"   element={<TermsPage />} />
-      <Route path="/faq"     element={<FAQPage />} />
+      <Route path="/terms" element={<TermsPage />} />
+      <Route path="/faq" element={<FAQPage />} />
+
+      {/* ✅ Global catch-all → login if not authenticated, home if authenticated */}
+      <Route path="*" element={<Navigate to={user ? "/" : "/login"} replace />} />
 
     </Routes>
   );
@@ -90,11 +96,10 @@ export default function App() {
       <CssBaseline />
       <AuthProvider>
         <FirmThemeProvider>
-                 <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
         </FirmThemeProvider>
- 
       </AuthProvider>
     </ThemeProvider>
   );
