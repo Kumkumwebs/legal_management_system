@@ -10,16 +10,16 @@ import {
   PaymentsRounded, GroupsRounded, SearchRounded, MenuRounded,
   LogoutRounded, AccountCircleRounded, KeyboardArrowDownRounded,
   BalanceRounded, AssignmentRounded, SupportAgentRounded,
-  SettingsRounded, CalendarMonthRounded,
-  VerifiedRounded, ChevronRightRounded,
+  SettingsRounded, CalendarMonthRounded, VerifiedRounded,
+  ChevronRightRounded,
 } from '@mui/icons-material';
 import { useAuth } from '../auth/AuthProvider';
-import { useTheme } from '../context/ThemeContext';   // ✅ firm theme context
+import { useTheme } from '../context/ThemeContext';
 import NotificationBell from '../components/NotificationBell';
 
 const DRAWER_WIDTH = 256;
 
-/* ─── nav config ──────────────────────────────── */
+/* ─── nav items ───────────────────────────────── */
 const NAV_ITEMS = [
   { label: 'Dashboard',     icon: <DashboardRounded />,    path: '/' },
   { label: 'Clients',       icon: <PeopleRounded />,        path: '/clients' },
@@ -35,7 +35,7 @@ const NAV_ITEMS = [
   { label: 'Support',       icon: <SupportAgentRounded />,  path: '/support' },
   { label: 'Profile',       icon: <AccountCircleRounded />, path: '/profile' },
   { label: 'Settings',      icon: <SettingsRounded />,      path: '/settings' },
-  { label: 'Brand Settings',      icon: <SettingsRounded />,      path: '/brand_setting' },
+  { label: 'Brand Settings',icon: <SettingsRounded />,      path: '/brand_setting' },
 ];
 
 const MENU_CONFIG = {
@@ -77,7 +77,7 @@ const ROLE_LABELS = {
   staff:       'Staff',
 };
 
-/* ─── helpers ────────────────────────────────── */
+/* ─── helpers ─────────────────────────────────── */
 function darken(hex, amt = 20) {
   try {
     const n = parseInt(hex.replace('#', ''), 16);
@@ -107,14 +107,13 @@ function SidebarContent({ user, role, location, firmTheme, onNav }) {
   const fontFam  = firmTheme.fontFamily   || 'DM Sans, sans-serif';
   const firmName = firmTheme.firmName     || 'NTS Legal Pro';
 
-  const bgDark         = darken(primary, 15);
-  const textColor      = isLight(primary) ? 'rgba(0,0,0,0.85)' : '#ffffff';
-  const mutedColor     = isLight(primary) ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.45)';
-  const dividerColor   = isLight(primary) ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.08)';
-  const hoverBg        = isLight(primary) ? 'rgba(0,0,0,0.05)'  : 'rgba(255,255,255,0.06)';
+  const bgDark       = darken(primary, 15);
+  const textColor    = isLight(primary) ? 'rgba(0,0,0,0.85)'  : '#ffffff';
+  const mutedColor   = isLight(primary) ? 'rgba(0,0,0,0.45)'  : 'rgba(255,255,255,0.45)';
+  const dividerColor = isLight(primary) ? 'rgba(0,0,0,0.10)'  : 'rgba(255,255,255,0.08)';
+  const hoverBg      = isLight(primary) ? 'rgba(0,0,0,0.05)'  : 'rgba(255,255,255,0.06)';
 
   const sections = NAV_SECTIONS[role] || [{ heading: 'Menu', items: MENU_CONFIG[role] || [] }];
-
   const isActive = (path) =>
     path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
 
@@ -129,16 +128,12 @@ function SidebarContent({ user, role, location, firmTheme, onNav }) {
       '&::-webkit-scrollbar-thumb': { background: `${accent}40`, borderRadius: 4 },
     }}>
 
-      {/* ── Logo / Brand ── */}
+      {/* ── Logo ── */}
       <Box sx={{ px: 2.5, pt: 2.5, pb: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           {firmTheme.logo ? (
-            <Box
-              component="img"
-              src={firmTheme.logo}
-              alt="Logo"
-              sx={{ width: 40, height: 40, borderRadius: '12px', objectFit: 'cover', flexShrink: 0 }}
-            />
+            <Box component="img" src={firmTheme.logo} alt="Logo"
+              sx={{ width: 40, height: 40, borderRadius: '12px', objectFit: 'cover', flexShrink: 0 }} />
           ) : (
             <Box sx={{
               width: 40, height: 40, borderRadius: '12px', flexShrink: 0,
@@ -152,8 +147,7 @@ function SidebarContent({ user, role, location, firmTheme, onNav }) {
           <Box>
             <Typography sx={{
               fontFamily: '"DM Serif Display", serif',
-              fontWeight: 400, fontSize: '1rem',
-              color: textColor, lineHeight: 1.2,
+              fontWeight: 400, fontSize: '1rem', color: textColor, lineHeight: 1.2,
             }}>
               {firmName}
             </Typography>
@@ -161,7 +155,7 @@ function SidebarContent({ user, role, location, firmTheme, onNav }) {
               fontSize: '0.58rem', color: mutedColor,
               letterSpacing: '0.12em', textTransform: 'uppercase',
             }}>
-              Management Suite
+             HP Highcourt management system
             </Typography>
           </Box>
         </Box>
@@ -174,10 +168,7 @@ function SidebarContent({ user, role, location, firmTheme, onNav }) {
           px: 1.5, py: 0.9, borderRadius: '10px',
           background: `${accent}18`, border: `1px solid ${accent}30`,
         }}>
-          <Box sx={{
-            width: 7, height: 7, borderRadius: '50%',
-            background: accent, boxShadow: `0 0 0 3px ${accent}30`,
-          }} />
+          <Box sx={{ width: 7, height: 7, borderRadius: '50%', background: accent, boxShadow: `0 0 0 3px ${accent}30` }} />
           <Typography sx={{
             fontSize: '0.68rem', fontWeight: 700, color: accent,
             letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: fontFam,
@@ -189,7 +180,7 @@ function SidebarContent({ user, role, location, firmTheme, onNav }) {
 
       <Divider sx={{ borderColor: dividerColor, mx: 2, mb: 1 }} />
 
-      {/* ── Nav ── */}
+      {/* ── Nav sections ── */}
       <Box sx={{ flex: 1, px: 1.5 }}>
         {sections.map((section) => {
           const items = NAV_ITEMS.filter(i => section.items.includes(i.label));
@@ -209,9 +200,7 @@ function SidebarContent({ user, role, location, firmTheme, onNav }) {
                   return (
                     <ListItem key={label} disablePadding sx={{ mb: 0.3 }}>
                       <ListItemButton
-                        component={Link}
-                        to={path}
-                        onClick={onNav}
+                        component={Link} to={path} onClick={onNav}
                         sx={{
                           borderRadius: '10px', px: 1.5, py: 1, position: 'relative',
                           background: active ? `${accent}20` : 'transparent',
@@ -227,10 +216,8 @@ function SidebarContent({ user, role, location, firmTheme, onNav }) {
                           }} />
                         )}
                         <ListItemIcon sx={{
-                          minWidth: 36,
-                          color: active ? accent : mutedColor,
-                          '& .MuiSvgIcon-root': { fontSize: 18 },
-                          transition: 'color 0.15s',
+                          minWidth: 36, color: active ? accent : mutedColor,
+                          '& .MuiSvgIcon-root': { fontSize: 18 }, transition: 'color 0.15s',
                         }}>
                           {icon}
                         </ListItemIcon>
@@ -242,9 +229,7 @@ function SidebarContent({ user, role, location, firmTheme, onNav }) {
                             color: active ? textColor : mutedColor,
                           }}
                         />
-                        {active && (
-                          <ChevronRightRounded sx={{ fontSize: 14, color: accent, opacity: 0.7 }} />
-                        )}
+                        {active && <ChevronRightRounded sx={{ fontSize: 14, color: accent, opacity: 0.7 }} />}
                       </ListItemButton>
                     </ListItem>
                   );
@@ -256,7 +241,7 @@ function SidebarContent({ user, role, location, firmTheme, onNav }) {
       </Box>
 
       {/* ── User card ── */}
-      <Box sx={{ p: 2, pt: 1 }}>
+      <Box sx={{ px: 2, pt: 1, pb: 2 }}>
         <Divider sx={{ borderColor: dividerColor, mb: 1.5 }} />
         <Box sx={{
           display: 'flex', alignItems: 'center', gap: 1.5, p: 1.5,
@@ -296,7 +281,7 @@ function SidebarContent({ user, role, location, firmTheme, onNav }) {
 ══════════════════════════════════════════════════ */
 export default function MainLayout() {
   const { user, logout }     = useAuth();
-  const { theme: firmTheme } = useTheme();     // ✅ reactive to branding changes
+  const { theme: firmTheme } = useTheme();
   const navigate             = useNavigate();
   const location             = useLocation();
 
@@ -308,7 +293,11 @@ export default function MainLayout() {
   const primary = firmTheme.primaryColor || '#0D1B2A';
   const fontFam = firmTheme.fontFamily   || 'DM Sans, sans-serif';
 
-  const handleLogout = () => { logout(); navigate('/login'); };
+  const handleLogout = () => {
+    window.dispatchEvent(new Event('auth:logout'));
+    logout();
+    navigate('/login');
+  };
 
   const pageTitle = NAV_ITEMS.find(i => i.path === location.pathname)?.label
     || NAV_ITEMS.find(i => location.pathname.startsWith(i.path) && i.path !== '/')?.label
@@ -320,31 +309,18 @@ export default function MainLayout() {
     <Box sx={{ display: 'flex', minHeight: '100vh', background: '#F2F4F7', fontFamily: fontFam }}>
 
       {/* Desktop sidebar */}
-      <Drawer
-        variant="permanent"
-        sx={{
-          width: DRAWER_WIDTH, flexShrink: 0,
-          display: { xs: 'none', md: 'block' },
-          '& .MuiDrawer-paper': {
-            width: DRAWER_WIDTH, boxSizing: 'border-box', border: 'none',
-            boxShadow: '4px 0 24px rgba(0,0,0,0.10)',
-          },
-        }}
-      >
+      <Drawer variant="permanent" sx={{
+        width: DRAWER_WIDTH, flexShrink: 0,
+        display: { xs: 'none', md: 'block' },
+        '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box', border: 'none', boxShadow: '4px 0 24px rgba(0,0,0,0.10)' },
+      }}>
         <SidebarContent {...sidebarProps} />
       </Drawer>
 
       {/* Mobile sidebar */}
-      <Drawer
-        variant="temporary"
-        open={mobileOpen}
-        onClose={() => setMobileOpen(false)}
+      <Drawer variant="temporary" open={mobileOpen} onClose={() => setMobileOpen(false)}
         ModalProps={{ keepMounted: true }}
-        sx={{
-          display: { xs: 'block', md: 'none' },
-          '& .MuiDrawer-paper': { width: DRAWER_WIDTH, border: 'none' },
-        }}
-      >
+        sx={{ display: { xs: 'block', md: 'none' }, '& .MuiDrawer-paper': { width: DRAWER_WIDTH, border: 'none' } }}>
         <SidebarContent {...sidebarProps} />
       </Drawer>
 
@@ -352,19 +328,12 @@ export default function MainLayout() {
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
 
         {/* ── Topbar ── */}
-        <AppBar
-          position="sticky" elevation={0}
-          sx={{ background: '#fff', borderBottom: '1px solid #E8EDF2', color: '#0D1B2A' }}
-        >
+        <AppBar position="sticky" elevation={0}
+          sx={{ background: '#fff', borderBottom: '1px solid #E8EDF2', color: '#0D1B2A' }}>
           <Toolbar sx={{ gap: 1.5, minHeight: '60px !important', px: { xs: 2, sm: 3 } }}>
 
-            <IconButton
-              onClick={() => setMobileOpen(true)}
-              sx={{
-                display: { md: 'none' }, width: 36, height: 36,
-                borderRadius: '10px', background: '#F2F4F7', border: '1px solid #E8EDF2',
-              }}
-            >
+            <IconButton onClick={() => setMobileOpen(true)}
+              sx={{ display: { md: 'none' }, width: 36, height: 36, borderRadius: '10px', background: '#F2F4F7', border: '1px solid #E8EDF2' }}>
               <MenuRounded sx={{ fontSize: 19 }} />
             </IconButton>
 
@@ -386,45 +355,33 @@ export default function MainLayout() {
               borderRadius: '10px', px: 1.5, py: 0.6,
               ml: { xs: 0, sm: 2 }, flex: 1, maxWidth: 320,
               transition: 'all 0.2s',
-              '&:focus-within': {
-                background: '#fff', borderColor: accent,
-                boxShadow: `0 0 0 3px ${accent}22`,
-              },
+              '&:focus-within': { background: '#fff', borderColor: accent, boxShadow: `0 0 0 3px ${accent}22` },
             }}>
               <SearchRounded sx={{ fontSize: 17, color: '#94A3B8', mr: 1, flexShrink: 0 }} />
               <InputBase
                 placeholder="Search anything…"
-                sx={{
-                  fontSize: '0.82rem', flex: 1, color: '#0D1B2A', fontFamily: fontFam,
-                  '& ::placeholder': { color: '#94A3B8', opacity: 1 },
-                }}
+                sx={{ fontSize: '0.82rem', flex: 1, color: '#0D1B2A', fontFamily: fontFam,
+                  '& ::placeholder': { color: '#94A3B8', opacity: 1 } }}
               />
             </Box>
 
             <Box sx={{ flex: 1 }} />
 
             {/* Notifications */}
-            <Box sx={{
-              width: 36, height: 36, borderRadius: '10px',
-              background: '#F2F4F7', border: '1px solid #E8EDF2',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
+            <Box sx={{ width: 36, height: 36, borderRadius: '10px', background: '#F2F4F7', border: '1px solid #E8EDF2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <NotificationBell />
             </Box>
 
             <Box sx={{ width: 1, height: 24, background: '#E8EDF2', mx: 0.5, display: { xs: 'none', sm: 'block' } }} />
 
             {/* User button */}
-            <Box
-              onClick={(e) => setAnchorEl(e.currentTarget)}
-              sx={{
-                display: 'flex', alignItems: 'center', gap: 1.2,
-                cursor: 'pointer', px: 1.5, py: 0.8,
-                borderRadius: '12px', border: '1px solid transparent',
-                transition: 'all 0.15s',
-                '&:hover': { background: '#F2F4F7', borderColor: '#E8EDF2' },
-              }}
-            >
+            <Box onClick={(e) => setAnchorEl(e.currentTarget)} sx={{
+              display: 'flex', alignItems: 'center', gap: 1.2,
+              cursor: 'pointer', px: 1.5, py: 0.8,
+              borderRadius: '12px', border: '1px solid transparent',
+              transition: 'all 0.15s',
+              '&:hover': { background: '#F2F4F7', borderColor: '#E8EDF2' },
+            }}>
               <Avatar sx={{
                 width: 32, height: 32,
                 background: `linear-gradient(135deg, ${accent}88, ${accent})`,
@@ -449,26 +406,13 @@ export default function MainLayout() {
             </Box>
 
             {/* Dropdown */}
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={() => setAnchorEl(null)}
+            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}
               transformOrigin={{ horizontal: 'right', vertical: 'top' }}
               anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-              PaperProps={{
-                sx: {
-                  mt: 1, minWidth: 210, borderRadius: '14px',
-                  border: '1px solid #E8EDF2',
-                  boxShadow: '0 12px 40px rgba(13,27,42,0.12)',
-                  overflow: 'hidden',
-                },
-              }}
-            >
-              <Box sx={{
-                px: 2.5, py: 2,
-                background: `linear-gradient(135deg, ${primary}14, ${primary}05)`,
-                borderBottom: '1px solid #E8EDF2',
-              }}>
+              PaperProps={{ sx: { mt: 1, minWidth: 210, borderRadius: '14px', border: '1px solid #E8EDF2', boxShadow: '0 12px 40px rgba(13,27,42,0.12)', overflow: 'hidden' } }}>
+
+              {/* User header */}
+              <Box sx={{ px: 2.5, py: 2, background: `linear-gradient(135deg, ${primary}14, ${primary}05)`, borderBottom: '1px solid #E8EDF2' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                   <Avatar sx={{
                     width: 38, height: 38,
@@ -493,35 +437,20 @@ export default function MainLayout() {
               </Box>
 
               {[
-                { label: 'Profile',  icon: <AccountCircleRounded sx={{ fontSize: 17 }} />, to: '/profile' },
-                { label: 'Settings', icon: <SettingsRounded sx={{ fontSize: 17 }} />,      to: '/settings' },
-                { label: 'Brand Settings', icon: <SettingsRounded sx={{ fontSize: 17 }} />,      to: '/brand_setting' },
+                { label: 'Profile',        icon: <AccountCircleRounded sx={{ fontSize: 17 }} />, to: '/profile' },
+                { label: 'Settings',       icon: <SettingsRounded      sx={{ fontSize: 17 }} />, to: '/settings' },
+                { label: 'Brand Settings', icon: <SettingsRounded      sx={{ fontSize: 17 }} />, to: '/brand_setting' },
               ].map(({ label, icon, to }) => (
-                <MenuItem
-                  key={label}
-                  component={Link}
-                  to={to}
-                  onClick={() => setAnchorEl(null)}
-                  sx={{
-                    py: 1.2, px: 2, gap: 1.5, fontSize: '0.83rem', fontWeight: 500,
-                    color: '#0D1B2A', fontFamily: fontFam,
-                    '&:hover': { background: `${accent}12` },
-                  }}
-                >
+                <MenuItem key={label} component={Link} to={to} onClick={() => setAnchorEl(null)}
+                  sx={{ py: 1.2, px: 2, gap: 1.5, fontSize: '0.83rem', fontWeight: 500, color: '#0D1B2A', fontFamily: fontFam, '&:hover': { background: `${accent}12` } }}>
                   <Box sx={{ color: '#64748B' }}>{icon}</Box> {label}
                 </MenuItem>
               ))}
 
               <Box sx={{ mx: 2, height: 1, background: '#E8EDF2', my: 0.5 }} />
 
-              <MenuItem
-                onClick={handleLogout}
-                sx={{
-                  py: 1.2, px: 2, gap: 1.5, fontSize: '0.83rem',
-                  fontWeight: 600, color: '#DC2626', fontFamily: fontFam,
-                  '&:hover': { background: '#FEF2F2' },
-                }}
-              >
+              <MenuItem onClick={handleLogout}
+                sx={{ py: 1.2, px: 2, gap: 1.5, fontSize: '0.83rem', fontWeight: 600, color: '#DC2626', fontFamily: fontFam, '&:hover': { background: '#FEF2F2' } }}>
                 <LogoutRounded sx={{ fontSize: 17 }} /> Sign Out
               </MenuItem>
             </Menu>

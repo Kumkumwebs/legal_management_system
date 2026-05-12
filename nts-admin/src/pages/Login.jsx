@@ -107,10 +107,11 @@ const LoginPage = () => {
           </Box>
           <Box>
             <Typography sx={{ fontWeight: 800, fontSize: '1rem', color: '#0D1B2A', lineHeight: 1, letterSpacing: '-0.02em' }}>
-              NTS Legal Pro
+              HP Highcourt
+
             </Typography>
             <Typography sx={{ fontSize: '0.68rem', color: '#94A3B8', letterSpacing: '0.13em', textTransform: 'uppercase', mt: 0.35 }}>
-              Management Suite
+              Management System
             </Typography>
           </Box>
         </Box>
@@ -224,7 +225,7 @@ const LoginPage = () => {
                 <GavelRounded sx={{ fontSize: 24, color: '#C9A84C' }} />
               </Box>
               <Typography sx={{ fontWeight: 800, fontSize: '1.05rem', color: '#0D1B2A', display: 'block' }}>
-                NTS Legal Pro
+                HP Highcourt management system
               </Typography>
             </Box>
 

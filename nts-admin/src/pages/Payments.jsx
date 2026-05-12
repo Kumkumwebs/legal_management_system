@@ -12,6 +12,8 @@ import {
 } from '@mui/icons-material';
 import { paymentsAPI, casesAPI, clientsAPI } from '../api/services';
 import api from '../api/client';   // ✅ needed for notify endpoints
+import PageHero from '../components/PageHero';
+
 
 const EMPTY_FORM = {
   client: '', case: '', amount: '', payment_date: '',
@@ -21,10 +23,10 @@ const EMPTY_FORM = {
 const METHOD_LABELS = { cash: 'Cash', upi: 'UPI', bank_transfer: 'Bank Transfer', cheque: 'Cheque' };
 
 const STATUS_CONFIG = {
-  paid:    { color: '#10B981', bg: '#ECFDF5', border: '#A7F3D0', label: 'Paid',    icon: CheckCircleRounded },
+  paid: { color: '#10B981', bg: '#ECFDF5', border: '#A7F3D0', label: 'Paid', icon: CheckCircleRounded },
   pending: { color: '#F59E0B', bg: '#FFFBEB', border: '#FDE68A', label: 'Pending', icon: HourglassTopRounded },
   overdue: { color: '#EF4444', bg: '#FEF2F2', border: '#FECACA', label: 'Overdue', icon: WarningAmberRounded },
-  partial: { color: '#3B82F6', bg: '#EFF6FF', border: '#BFDBFE', label: 'Partial',  icon: AccountBalanceWalletRounded },
+  partial: { color: '#3B82F6', bg: '#EFF6FF', border: '#BFDBFE', label: 'Partial', icon: AccountBalanceWalletRounded },
 };
 
 const inputSx = {
@@ -142,22 +144,22 @@ const ActionMenu = ({ payment, onEdit, onDelete, onNotifyEmail, onNotifyWhatsApp
 };
 
 export default function PaymentsPage() {
-  const [payments,        setPayments]        = useState([]);
-  const [cases,           setCases]           = useState([]);
-  const [clients,         setClients]         = useState([]);
-  const [loading,         setLoading]         = useState(true);
-  const [dialog,          setDialog]          = useState(false);
-  const [form,            setForm]            = useState(EMPTY_FORM);
-  const [saving,          setSaving]          = useState(false);
-  const [editingId,       setEditingId]       = useState(null);
-  const [deleteDialog,    setDeleteDialog]    = useState(false);
+  const [payments, setPayments] = useState([]);
+  const [cases, setCases] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [dialog, setDialog] = useState(false);
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [deleteDialog, setDeleteDialog] = useState(false);
   const [deletingPayment, setDeletingPayment] = useState(null);
-  const [deleting,        setDeleting]        = useState(false);
-  const [snack,           setSnack]           = useState({ open: false, msg: '', severity: 'success' });
+  const [deleting, setDeleting] = useState(false);
+  const [snack, setSnack] = useState({ open: false, msg: '', severity: 'success' });
 
   // ✅ Per-row sending state — tracks which payment is being notified
   const [sendingEmailId, setSendingEmailId] = useState(null);
-  const [sendingWAId,    setSendingWAId]    = useState(null);
+  const [sendingWAId, setSendingWAId] = useState(null);
 
   const notify = (msg, severity = 'success') => setSnack({ open: true, msg, severity });
 
@@ -169,17 +171,17 @@ export default function PaymentsPage() {
         casesAPI.getAll(),
         clientsAPI.getAll(),
       ]);
-      if (payRes.status    === 'fulfilled') setPayments(payRes.value.data?.results    ?? payRes.value.data    ?? []);
-      if (caseRes.status   === 'fulfilled') setCases(caseRes.value.data?.results      ?? caseRes.value.data   ?? []);
-      if (clientRes.status === 'fulfilled') setClients(clientRes.value.data?.results  ?? clientRes.value.data ?? []);
+      if (payRes.status === 'fulfilled') setPayments(payRes.value.data?.results ?? payRes.value.data ?? []);
+      if (caseRes.status === 'fulfilled') setCases(caseRes.value.data?.results ?? caseRes.value.data ?? []);
+      if (clientRes.status === 'fulfilled') setClients(clientRes.value.data?.results ?? clientRes.value.data ?? []);
     } finally { setLoading(false); }
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const handleChange      = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-  const handleOpenCreate  = ()  => { setEditingId(null); setForm(EMPTY_FORM); setDialog(true); };
-  const handleOpenEdit    = (p) => {
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleOpenCreate = () => { setEditingId(null); setForm(EMPTY_FORM); setDialog(true); };
+  const handleOpenEdit = (p) => {
     setEditingId(p.id);
     setForm({ client: p.client ?? '', case: p.case ?? '', amount: p.amount ?? '', payment_date: p.payment_date ?? '', payment_method: p.payment_method || 'cash', status: p.status ?? 'pending', notes: p.notes ?? '' });
     setDialog(true);
@@ -198,7 +200,7 @@ export default function PaymentsPage() {
     finally { setSaving(false); }
   };
 
-  const handleOpenDelete    = (p) => { setDeletingPayment(p); setDeleteDialog(true); };
+  const handleOpenDelete = (p) => { setDeletingPayment(p); setDeleteDialog(true); };
   const handleConfirmDelete = async () => {
     if (!deletingPayment) return;
     setDeleting(true);
@@ -244,7 +246,7 @@ export default function PaymentsPage() {
   };
 
   // ── Stats ──
-  const totalPaid    = payments.filter(p => p.status === 'paid').reduce((s, p) => s + Number(p.amount || 0), 0);
+  const totalPaid = payments.filter(p => p.status === 'paid').reduce((s, p) => s + Number(p.amount || 0), 0);
   const totalPending = payments.filter(p => p.status !== 'paid').reduce((s, p) => s + Number(p.amount || 0), 0);
   const totalRevenue = payments.reduce((s, p) => s + Number(p.amount || 0), 0);
 
@@ -254,73 +256,46 @@ export default function PaymentsPage() {
     <Box sx={{ p: { xs: 2, md: 3 }, bgcolor: '#F5F4F0', minHeight: '100vh' }}>
 
       {/* ══ HERO HEADER ══ */}
-      <Box sx={{
-        borderRadius: '20px',
-        background: 'linear-gradient(135deg, #0D1B2A 0%, #1B3050 60%, #0D1B2A 100%)',
-        p: { xs: 3, md: 4 }, mb: 3, position: 'relative', overflow: 'hidden',
-      }}>
-        <Box sx={{ position: 'absolute', top: -50, right: -50, width: 200, height: 200, borderRadius: '50%', border: '1px solid rgba(201,168,76,0.12)', pointerEvents: 'none' }} />
-        <Box sx={{ position: 'absolute', top: -15, right: -15, width: 110, height: 110, borderRadius: '50%', border: '1px solid rgba(201,168,76,0.08)', pointerEvents: 'none' }} />
-        <Box sx={{ position: 'absolute', bottom: -20, left: 100, width: 100, height: 100, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
-
-        <Box sx={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
-          <Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
-              <Box sx={{ width: 32, height: 32, bgcolor: 'rgba(201,168,76,0.15)', borderRadius: '9px', border: '1px solid rgba(201,168,76,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <ReceiptRounded sx={{ color: '#C9A84C', fontSize: 16 }} />
-              </Box>
-              <Typography sx={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', color: '#C9A84C', textTransform: 'uppercase' }}>
-                HP HCMS · Payments
-              </Typography>
-            </Box>
-            <Typography sx={{ fontSize: { xs: 22, md: 28 }, fontWeight: 800, color: '#fff', lineHeight: 1.15, mb: 0.5 }}>
-              Payment Records
-            </Typography>
-            <Typography sx={{ fontSize: 13, color: 'rgba(255,255,255,0.45)' }}>
-              {payments.length} payment record{payments.length !== 1 ? 's' : ''} · Track, notify and manage billing
-            </Typography>
-          </Box>
-          <Button startIcon={<AddRounded />} onClick={handleOpenCreate} sx={{
-            bgcolor: '#C9A84C', color: '#0D1B2A', borderRadius: '12px', px: 3, py: 1.4,
-            fontWeight: 800, textTransform: 'none', fontSize: 14,
-            boxShadow: '0 4px 20px rgba(201,168,76,0.4)',
-            '&:hover': { bgcolor: '#DFC070', transform: 'translateY(-1px)', boxShadow: '0 6px 24px rgba(201,168,76,0.5)' },
-            transition: 'all 0.2s',
-          }}>
-            Add Payment
-          </Button>
-        </Box>
-
-        {/* Stats inside header */}
-        <Box sx={{ display: 'flex', gap: 4, mt: 3, pt: 3, borderTop: '1px solid rgba(255,255,255,0.07)', position: 'relative', zIndex: 1, flexWrap: 'wrap' }}>
-          {[
-            { label: 'Total Revenue',  value: `₹${totalRevenue.toLocaleString('en-IN')}`, color: '#fff' },
-            { label: 'Total Received', value: `₹${totalPaid.toLocaleString('en-IN')}`,    color: '#34D399' },
-            { label: 'Pending Amount', value: `₹${totalPending.toLocaleString('en-IN')}`, color: '#FCD34D' },
-            { label: 'Records',        value: payments.length,                             color: '#93C5FD' },
-          ].map(s => (
-            <Box key={s.label}>
-              <Typography sx={{ fontSize: 20, fontWeight: 800, color: s.color, lineHeight: 1 }}>{s.value}</Typography>
-              <Typography sx={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', fontWeight: 600, mt: 0.3, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{s.label}</Typography>
-            </Box>
-          ))}
-        </Box>
-      </Box>
+     
 
       {/* ══ PAYMENTS TABLE ══ */}
       <Box sx={{ bgcolor: '#fff', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.06)', overflow: 'hidden' }}>
 
         {/* Table header bar */}
-        <Box sx={{ px: 3, py: 2, borderBottom: '1px solid #F5F4F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography sx={{ fontWeight: 700, color: '#0D1B2A', fontSize: 14 }}>All Payments</Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-              <WhatsApp sx={{ fontSize: 14, color: '#25D366' }} />
-              <EmailRounded sx={{ fontSize: 14, color: '#3B82F6' }} />
+        <PageHero
+          label="HP HCMS · Payments"
+          icon={<ReceiptRounded />}
+          title="Payment Records"
+          subtitle={`${payments.length} payment record${payments.length !== 1 ? 's' : ''} · Track, notify and manage billing`}
+          action={
+            <Button startIcon={<AddRounded />} onClick={handleOpenCreate} sx={{
+              bgcolor: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)',
+              border: '1px solid rgba(255,255,255,0.25)',
+              color: '#fff', borderRadius: '12px', px: 3, py: 1.4,
+              fontWeight: 800, textTransform: 'none', fontSize: 14,
+              '&:hover': { bgcolor: 'rgba(255,255,255,0.25)', transform: 'translateY(-1px)' },
+              transition: 'all 0.2s',
+            }}>
+              Add Payment
+            </Button>
+          }
+        />
+
+        {/* Stats row — now outside hero, below it */}
+        <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+          {[
+            { label: 'Total Revenue', value: `₹${totalRevenue.toLocaleString('en-IN')}`, color: '#0D1B2A', bg: '#F1F5F9' },
+            { label: 'Received', value: `₹${totalPaid.toLocaleString('en-IN')}`, color: '#059669', bg: '#ECFDF5' },
+            { label: 'Pending', value: `₹${totalPending.toLocaleString('en-IN')}`, color: '#F59E0B', bg: '#FFFBEB' },
+            { label: 'Records', value: payments.length, color: '#3B82F6', bg: '#EFF6FF' },
+          ].map(s => (
+            <Box key={s.label} sx={{ px: 2.5, py: 1.5, bgcolor: s.bg, borderRadius: '12px', border: `1px solid ${s.color}20`, minWidth: 110 }}>
+              <Typography sx={{ fontSize: 20, fontWeight: 800, color: s.color, lineHeight: 1 }}>{s.value}</Typography>
+              <Typography sx={{ fontSize: 10, color: s.color, fontWeight: 700, mt: 0.3, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.7 }}>{s.label}</Typography>
             </Box>
-            <Typography sx={{ fontSize: 11, color: '#9CA3AF' }}>Send invoice directly to client</Typography>
-          </Box>
+          ))}
         </Box>
+
 
         {loading ? (
           <Box sx={{ p: 8, textAlign: 'center' }}>

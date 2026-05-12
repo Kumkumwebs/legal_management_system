@@ -124,10 +124,11 @@ export default function Sidebar() {
                 lineHeight: 1.2,
               }}
             >
-              NTS Legal Pro
+              HP Highcourt
+
             </Typography>
             <Typography sx={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.1em', fontWeight: 500 }}>
-              LEGAL MANAGEMENT
+              Management System
             </Typography>
           </Box>
         </Box>
