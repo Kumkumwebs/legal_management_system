@@ -8,7 +8,7 @@ export const defaultTheme = {
   fontFamily:   'DM Sans, sans-serif',
   sidebarDark:  true,
   logo:         null,
-  firmName:     'NTS Legal Pro',
+  firmName:     'HP Highcourt management system',
 };
 
 const ThemeCtx = createContext({

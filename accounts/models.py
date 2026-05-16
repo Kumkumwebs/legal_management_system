@@ -7,6 +7,10 @@ from firms.models import Firm
 from legal_management_system.utils.base import BaseModel
 from django.utils.crypto import get_random_string
 from firms.models import Firm
+from django.db import models
+from django.contrib.auth import get_user_model
+from django.utils import timezone
+
 class UserProfile(BaseModel):
     ROLE_CHOICES = (
         ('admin', 'Admin'),
@@ -41,3 +45,24 @@ class Invite(models.Model):
         if not self.token:
             self.token = get_random_string(50)
         super().save(*args,**kwargs)
+        
+
+
+User = get_user_model()
+
+class PasswordResetToken(models.Model):
+    user       = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reset_tokens')
+    token      = models.CharField(max_length=128, unique=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    used       = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = 'Password Reset Token'
+
+    def __str__(self):
+        return f"ResetToken({self.user.username}, used={self.used})"
+
+    @property
+    def is_valid(self):
+        return not self.used and self.expires_at > timezone.now()

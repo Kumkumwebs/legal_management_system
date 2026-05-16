@@ -1,414 +1,653 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Box, Card, CardContent, TextField, Button, Typography, Alert,
+  Box, TextField, Button, Alert,
   CircularProgress, InputAdornment, IconButton,
 } from '@mui/material';
-import { Visibility, VisibilityOff, GavelRounded, LockOutlined, PersonOutline } from '@mui/icons-material';
+import { Visibility, VisibilityOff, GavelRounded } from '@mui/icons-material';
 import { useAuth } from '../auth/AuthProvider';
 
+const CSS = `
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+@keyframes float-a {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33%      { transform: translate(40px,-30px) scale(1.08); }
+  66%      { transform: translate(-20px,20px) scale(0.95); }
+}
+@keyframes float-b {
+  0%,100% { transform: translate(0,0) scale(1); }
+  40%      { transform: translate(-35px,25px) scale(1.05); }
+  70%      { transform: translate(25px,-15px) scale(0.97); }
+}
+@keyframes float-c {
+  0%,100% { transform: translate(0,0); }
+  50%      { transform: translate(20px,-40px); }
+}
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes lineGrow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+@keyframes pulse-ring {
+  0%   { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ─── Root ─── */
+.lp {
+  display: flex;
+  min-height: 100vh;
+  font-family: 'DM Sans', sans-serif;
+  background: #0D1B2A;
+}
+
+/* ════════ LEFT PANEL ════════ */
+.lp-left {
+  position: relative;
+  width: 52%;
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 48px 52px;
+  overflow: hidden;
+  background: linear-gradient(145deg, #0A1520 0%, #0D1B2A 50%, #111f30 100%);
+}
+@media (min-width: 1024px) { .lp-left { display: flex; } }
+
+/* Animated mesh orbs */
+.lp-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(60px);
+}
+.lp-orb-1 {
+  width: 480px; height: 480px;
+  top: -100px; left: -120px;
+  background: radial-gradient(circle, rgba(201,168,76,0.18) 0%, transparent 70%);
+  animation: float-a 14s ease-in-out infinite;
+}
+.lp-orb-2 {
+  width: 360px; height: 360px;
+  bottom: -80px; right: -80px;
+  background: radial-gradient(circle, rgba(41,82,140,0.35) 0%, transparent 70%);
+  animation: float-b 18s ease-in-out infinite;
+}
+.lp-orb-3 {
+  width: 240px; height: 240px;
+  top: 45%; left: 40%;
+  background: radial-gradient(circle, rgba(201,168,76,0.10) 0%, transparent 70%);
+  animation: float-c 10s ease-in-out infinite;
+}
+
+/* Fine grid overlay */
+.lp-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* Noise grain */
+.lp-grain {
+  position: absolute; inset: 0;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px;
+  pointer-events: none;
+}
+
+/* Top nav */
+.lp-nav {
+  position: relative; z-index: 2;
+  display: flex; align-items: center; justify-content: space-between;
+  animation: fadeSlideUp 0.6s ease both;
+}
+.lp-logo { display: flex; align-items: center; gap: 14px; }
+.lp-logo-icon {
+  width: 42px; height: 42px; border-radius: 11px;
+  background: linear-gradient(135deg, #C9A84C 0%, #E8C97A 100%);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 0 1px rgba(201,168,76,0.4), 0 8px 20px rgba(201,168,76,0.2);
+}
+.lp-logo-name {
+  font-size: 0.88rem; font-weight: 700; color: #fff; letter-spacing: -0.01em;
+}
+.lp-logo-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem; color: rgba(201,168,76,0.65);
+  letter-spacing: 0.2em; text-transform: uppercase; margin-top: 4px;
+}
+.lp-status {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 99px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem; color: rgba(255,255,255,0.5);
+  letter-spacing: 0.1em;
+}
+.lp-status-dot {
+  position: relative;
+  width: 7px; height: 7px;
+}
+.lp-status-dot::before,
+.lp-status-dot::after {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  background: #4ADE80;
+}
+.lp-status-dot::after {
+  animation: pulse-ring 1.8s ease-out infinite;
+}
+
+/* Hero content */
+.lp-hero {
+  position: relative; z-index: 2;
+  animation: fadeSlideUp 0.7s ease 0.1s both;
+}
+
+.lp-kicker {
+  display: inline-flex; align-items: center; gap: 10px;
+  margin-bottom: 24px;
+}
+.lp-kicker-line {
+  height: 1px; width: 40px;
+  background: linear-gradient(90deg, #C9A84C, transparent);
+  transform-origin: left;
+  animation: lineGrow 0.8s ease 0.4s both;
+}
+.lp-kicker-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem; color: #C9A84C;
+  letter-spacing: 0.22em; text-transform: uppercase;
+}
+
+.lp-headline {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(2.4rem, 3.2vw, 3.6rem);
+  font-weight: 400; color: #fff;
+  line-height: 1.06; letter-spacing: -0.025em;
+  margin-bottom: 22px;
+}
+.lp-headline em {
+  font-style: italic; color: #C9A84C;
+}
+
+.lp-desc {
+  font-size: 0.95rem; color: rgba(255,255,255,0.45);
+  line-height: 1.75; max-width: 420px;
+}
+
+/* Glass feature card */
+.lp-glass {
+  margin-top: 44px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 28px;
+  backdrop-filter: blur(12px);
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0;
+}
+.lp-stat {
+  padding: 0 24px;
+  border-right: 1px solid rgba(255,255,255,0.07);
+}
+.lp-stat:first-child { padding-left: 0; }
+.lp-stat:last-child  { border: none; }
+.lp-stat-val {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.65rem; font-weight: 500;
+  color: #C9A84C; letter-spacing: -0.02em;
+}
+.lp-stat-label {
+  font-size: 0.72rem; color: rgba(255,255,255,0.4);
+  margin-top: 4px; letter-spacing: 0.04em;
+}
+
+/* Bottom quote */
+.lp-quote-wrap {
+  position: relative; z-index: 2;
+  animation: fadeSlideUp 0.7s ease 0.2s both;
+}
+.lp-quote {
+  display: flex; gap: 16px; align-items: flex-start;
+}
+.lp-quote-bar {
+  width: 2px; min-height: 48px;
+  background: linear-gradient(to bottom, #C9A84C, transparent);
+  border-radius: 2px; flex-shrink: 0;
+  margin-top: 2px;
+}
+.lp-quote-text {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 0.95rem; color: rgba(255,255,255,0.6);
+  line-height: 1.6;
+}
+.lp-quote-author {
+  display: block; margin-top: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-style: normal; font-size: 0.72rem;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 0.06em; text-transform: uppercase;
+}
+
+/* ════════ RIGHT PANEL ════════ */
+.lp-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #F8F5EF;
+  padding: 40px 28px;
+  position: relative;
+}
+
+/* Texture */
+.lp-right::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: radial-gradient(rgba(13,27,42,0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Decorative arc top-right */
+.lp-arc {
+  position: absolute; top: -80px; right: -80px;
+  width: 240px; height: 240px;
+  border-radius: 50%;
+  border: 1px solid rgba(201,168,76,0.12);
+  pointer-events: none;
+}
+.lp-arc-2 {
+  position: absolute; top: -40px; right: -40px;
+  width: 140px; height: 140px;
+  border-radius: 50%;
+  border: 1px solid rgba(201,168,76,0.08);
+  pointer-events: none;
+}
+
+.lp-form-wrap {
+  width: 100%; max-width: 400px;
+  position: relative; z-index: 1;
+  animation: fadeSlideUp 0.6s ease 0.15s both;
+}
+
+/* Mobile brand */
+.lp-mb-brand {
+  display: flex; flex-direction: column; align-items: center;
+  margin-bottom: 32px;
+}
+@media (min-width: 1024px) { .lp-mb-brand { display: none; } }
+.lp-mb-icon {
+  width: 52px; height: 52px; border-radius: 14px;
+  background: #0D1B2A;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 12px;
+  box-shadow: 0 8px 24px rgba(13,27,42,0.18);
+}
+.lp-mb-name {
+  font-size: 0.88rem; font-weight: 700; color: #0D1B2A;
+}
+.lp-mb-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem; color: #C9A84C;
+  letter-spacing: 0.2em; text-transform: uppercase; margin-top: 5px;
+}
+
+/* Step indicator */
+.lp-step {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 18px;
+}
+.lp-step-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #C9A84C;
+  box-shadow: 0 0 0 3px rgba(201,168,76,0.15);
+}
+.lp-step-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.64rem; color: #C9A84C;
+  letter-spacing: 0.18em; text-transform: uppercase;
+}
+
+/* Heading */
+.lp-heading {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2rem; font-weight: 400;
+  color: #0D1B2A; line-height: 1.1;
+  letter-spacing: -0.025em;
+  margin-bottom: 8px;
+}
+.lp-heading em { font-style: italic; color: #C9A84C; }
+
+.lp-sub {
+  font-size: 0.875rem; color: #64748B;
+  line-height: 1.6; margin-bottom: 32px;
+}
+
+/* Field label row */
+.lp-field { margin-bottom: 20px; }
+.lp-field-top {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.lp-field-label {
+  font-size: 0.75rem; font-weight: 600; color: #0D1B2A;
+  letter-spacing: 0.04em;
+}
+.lp-field-link {
+  font-size: 0.74rem; color: #94A3B8; cursor: pointer;
+  transition: color 0.18s;
+}
+.lp-field-link:hover { color: #C9A84C; }
+
+/* Divider line */
+.lp-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #E2E8F0 30%, #E2E8F0 70%, transparent);
+  margin: 24px 0;
+}
+
+/* Footer */
+.lp-foot {
+  margin-top: 24px;
+  display: flex; align-items: center; justify-content: center; gap: 16px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.64rem; color: #CBD5E1; letter-spacing: 0.08em;
+}
+.lp-foot-sep { width: 3px; height: 3px; border-radius: 50%; background: #E2E8F0; }
+`;
+
 const LoginPage = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPass, setShowPass] = useState(false);
+  const [username, setUsername]   = useState('');
+  const [password, setPassword]   = useState('');
+  const [showPass, setShowPass]   = useState(false);
   const [localError, setLocalError] = useState('');
+  const [focusedField, setFocused] = useState(null);
   const { login, loading } = useAuth();
   const navigate = useNavigate();
-
-  // ✅ REMOVED useEffect redirect — App.jsx already handles it via:
-  //    user ? <Navigate to="/" replace /> : <LoginPage />
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLocalError('');
     try {
       const ok = await login(username, password);
-      if (ok) navigate('/', { replace: true }); // ✅ Fixed: '/' not '/dashboard'
+      if (ok) navigate('/', { replace: true });
     } catch (err) {
       setLocalError(err?.response?.data?.detail || 'Invalid username or password');
     }
   };
 
+  const fieldSx = (key) => ({
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '11px',
+      background: '#FFFFFF',
+      fontSize: '0.9rem',
+      fontFamily: '"DM Sans", sans-serif',
+      transition: 'box-shadow 0.2s, border-color 0.2s',
+      '& fieldset': {
+        borderColor: focusedField === key ? '#0D1B2A' : '#E2E8F0',
+        borderWidth: focusedField === key ? '1.5px' : '1px',
+        transition: 'all 0.2s',
+      },
+      '&:hover fieldset': { borderColor: '#CBD5E1' },
+      '&.Mui-focused fieldset': { borderColor: '#0D1B2A', borderWidth: '1.5px' },
+      '&.Mui-focused': { boxShadow: '0 0 0 4px rgba(13,27,42,0.07), 0 2px 8px rgba(13,27,42,0.06)' },
+    },
+    '& .MuiOutlinedInput-input': {
+      py: 1.5, px: 1.75,
+      '&::placeholder': { color: '#CBD5E1', opacity: 1 },
+    },
+  });
+
   return (
-    <Box sx={{
-      minHeight: '100vh',
-      display: 'flex',
-      background: '#F9F6F0',
-      position: 'relative',
-      overflow: 'hidden',
-    }}>
+    <>
+      <style>{CSS}</style>
+      <div className="lp">
 
-      {/* ── Decorative shapes ── */}
-      <Box sx={{
-        position: 'absolute', top: -80, left: -80,
-        width: 220, height: 220, borderRadius: '50%',
-        background: '#0D1B2A',
-        zIndex: -1, pointerEvents: 'none',
-      }} />
-      <Box sx={{
-        position: 'absolute', top: 20, left: 20,
-        width: 100, height: 100, borderRadius: '50%',
-        border: '1.5px solid rgba(201,168,76,0.5)',
-        zIndex: -1, pointerEvents: 'none',
-      }} />
-      <Box sx={{
-        position: 'absolute', top: 62, left: 62,
-        width: 16, height: 16, borderRadius: '50%',
-        background: '#C9A84C',
-        zIndex: -1, pointerEvents: 'none',
-      }} />
-      <Box sx={{
-        position: 'absolute', bottom: -60, right: -60,
-        width: 200, height: 200, borderRadius: '24px',
-        background: '#0D1B2A', transform: 'rotate(15deg)',
-        zIndex: -1, pointerEvents: 'none',
-      }} />
-      <Box sx={{
-        position: 'absolute', bottom: 18, right: 18,
-        width: 80, height: 80, borderRadius: '10px',
-        border: '1.5px solid rgba(201,168,76,0.4)', transform: 'rotate(10deg)',
-        zIndex: -1, pointerEvents: 'none',
-      }} />
-      <Box sx={{
-        position: 'absolute', bottom: 60, left: -40,
-        width: 130, height: 130, borderRadius: '50%',
-        border: '1px solid rgba(201,168,76,0.2)',
-        zIndex: -1, pointerEvents: 'none',
-      }} />
-      <Box sx={{
-        position: 'absolute', top: -50, right: '28%',
-        width: 160, height: 160, borderRadius: '50%',
-        border: '1px solid rgba(13,27,42,0.06)',
-        zIndex: -1, pointerEvents: 'none',
-      }} />
+        {/* ══════ LEFT PANEL ══════ */}
+        <div className="lp-left">
+          <div className="lp-orb lp-orb-1" />
+          <div className="lp-orb lp-orb-2" />
+          <div className="lp-orb lp-orb-3" />
+          <div className="lp-grid" />
+          <div className="lp-grain" />
 
-      {/* ── Left branding panel ── */}
-      <Box sx={{
-        display: { xs: 'none', lg: 'flex' },
-        flexDirection: 'column',
-        justifyContent: 'center',
-        width: '48%',
-        minHeight: '100vh',
-        px: { lg: 8, xl: 11 },
-        py: 6,
-        position: 'relative',
-        zIndex: 1,
-      }}>
-        {/* Logo */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 6 }}>
-          <Box sx={{
-            width: 46, height: 46, borderRadius: '13px',
-            background: '#0D1B2A',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0,
-            boxShadow: '0 4px 16px rgba(13,27,42,0.22)',
-          }}>
-            <GavelRounded sx={{ fontSize: 23, color: '#C9A84C' }} />
-          </Box>
-          <Box>
-            <Typography sx={{ fontWeight: 800, fontSize: '1rem', color: '#0D1B2A', lineHeight: 1, letterSpacing: '-0.02em' }}>
-              HP Highcourt
+          {/* Top nav */}
+          <nav className="lp-nav">
+            <div className="lp-logo">
+              <div className="lp-logo-icon">
+                <GavelRounded sx={{ fontSize: 20, color: '#0D1B2A' }} />
+              </div>
+              <div>
+                <div className="lp-logo-name">HP High Court</div>
+                <div className="lp-logo-sub">Management System</div>
+              </div>
+            </div>
+            <div className="lp-status">
+              <span className="lp-status-dot" />
+              LIVE
+            </div>
+          </nav>
 
-            </Typography>
-            <Typography sx={{ fontSize: '0.68rem', color: '#94A3B8', letterSpacing: '0.13em', textTransform: 'uppercase', mt: 0.35 }}>
-              Management System
-            </Typography>
-          </Box>
-        </Box>
+          {/* Hero */}
+          <div className="lp-hero">
+            <div className="lp-kicker">
+              <div className="lp-kicker-line" />
+              <span className="lp-kicker-text">Chamber Portal</span>
+            </div>
+            <h1 className="lp-headline">
+              Justice moves<br />
+              <em>at your speed.</em>
+            </h1>
+            <p className="lp-desc">
+              One unified workspace for clients, cases, hearings,
+              documents and revenue — built for the modern law chamber.
+            </p>
 
-        {/* Headline */}
-        <Box sx={{ mb: 3.5 }}>
-          <Typography sx={{
-            fontFamily: '"DM Serif Display", serif',
-            fontSize: { lg: '2.6rem', xl: '3.2rem' },
-            fontWeight: 400, color: '#0D1B2A',
-            lineHeight: 1.15, letterSpacing: '-0.02em', display: 'block',
-          }}>
-            Your entire practice,
-          </Typography>
-          <Typography sx={{
-            fontFamily: '"DM Serif Display", serif',
-            fontStyle: 'italic',
-            fontSize: { lg: '2.6rem', xl: '3.2rem' },
-            fontWeight: 400, color: '#C9A84C',
-            lineHeight: 1.15, letterSpacing: '-0.02em', display: 'block',
-          }}>
-            one dashboard.
-          </Typography>
-        </Box>
+            {/* Glass stat card */}
+            <div className="lp-glass">
+              <div className="lp-stat">
+                <div className="lp-stat-val">12K+</div>
+                <div className="lp-stat-label">Cases Filed</div>
+              </div>
+              <div className="lp-stat">
+                <div className="lp-stat-val">500+</div>
+                <div className="lp-stat-label">Law Firms</div>
+              </div>
+              <div className="lp-stat">
+                <div className="lp-stat-val">99.9%</div>
+                <div className="lp-stat-label">Uptime</div>
+              </div>
+            </div>
+          </div>
 
-        <Typography sx={{ color: '#64748B', fontSize: '0.93rem', lineHeight: 1.8, maxWidth: 370, mb: 5 }}>
-          Manage clients, cases, documents, hearings, and revenue in one beautifully unified legal workspace built for modern law firms.
-        </Typography>
+          {/* Quote */}
+          <div className="lp-quote-wrap">
+            <div className="lp-quote">
+              <div className="lp-quote-bar" />
+              <div>
+                <div className="lp-quote-text">
+                  "Intake to hearing in minutes. Our entire chamber runs on this."
+                  <span className="lp-quote-author">— Adv. R. Sharma, Senior Counsel</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-        {/* Feature pills */}
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.25, mb: 5 }}>
-          {['Client Management', 'Case Tracking', 'Document Vault', 'Payment Reports', 'Team Roles'].map((feat) => (
-            <Box key={feat} sx={{
-              px: 1.75, py: 0.65,
-              background: '#FFFFFF',
-              border: '1px solid #E2E8F0',
-              borderRadius: '99px',
-              display: 'flex', alignItems: 'center', gap: 0.75,
-              boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-            }}>
-              <Box sx={{ width: 6, height: 6, borderRadius: '50%', background: '#C9A84C', flexShrink: 0 }} />
-              <Typography sx={{ fontSize: '0.78rem', fontWeight: 600, color: '#0D1B2A' }}>{feat}</Typography>
-            </Box>
-          ))}
-        </Box>
+        {/* ══════ RIGHT PANEL ══════ */}
+        <div className="lp-right">
+          <div className="lp-arc" />
+          <div className="lp-arc-2" />
 
-        {/* Stats row */}
-        <Box sx={{
-          display: 'flex',
-          background: '#FFFFFF',
-          border: '1px solid #E2E8F0',
-          borderRadius: '16px',
-          overflow: 'hidden',
-          maxWidth: 390,
-          boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
-        }}>
-          {[['500+', 'Law Firms'], ['98%', 'Uptime SLA'], ['24/7', 'Support']].map(([val, label], i) => (
-            <Box key={label} sx={{
-              flex: 1, py: 2.25, px: 2,
-              borderRight: i < 2 ? '1px solid #F1F5F9' : 'none',
-              textAlign: 'center',
-            }}>
-              <Typography sx={{ fontWeight: 800, fontSize: '1.2rem', color: '#0D1B2A', letterSpacing: '-0.02em' }}>{val}</Typography>
-              <Typography sx={{ fontSize: '0.68rem', color: '#94A3B8', mt: 0.3, letterSpacing: '0.05em' }}>{label}</Typography>
-            </Box>
-          ))}
-        </Box>
-      </Box>
+          <div className="lp-form-wrap">
 
-      {/* ── Right login panel ── */}
-      <Box sx={{
-        flex: 1,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        position: 'relative',
-        zIndex: 1,
-        px: 2,
-        py: 4,
-      }}>
-        <Card sx={{
-          width: '100%',
-          maxWidth: 460,
-          borderRadius: '24px',
-          background: '#FFFFFF',
-          boxShadow: '0 4px 6px rgba(0,0,0,0.04), 0 24px 80px rgba(13,27,42,0.12)',
-          border: '1px solid #EEF0F3',
-          overflow: 'visible',
-          position: 'relative',
-        }}>
-          {/* Gold stripe */}
-          <Box sx={{
-            position: 'absolute',
-            top: 0, left: 32, right: 32,
-            height: '3px',
-            background: 'linear-gradient(90deg, transparent, #C9A84C 30%, #E8C97A 65%, transparent)',
-            borderRadius: '0 0 4px 4px',
-          }} />
-
-          <CardContent sx={{ p: { xs: 3.5, sm: 5 }, pt: { xs: 4.5, sm: 5.5 } }}>
-
-            {/* Mobile-only logo */}
-            <Box sx={{ display: { lg: 'none' }, mb: 4, textAlign: 'center' }}>
-              <Box sx={{
-                width: 48, height: 48, borderRadius: '14px',
-                background: '#0D1B2A',
-                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                mb: 1.5,
-              }}>
+            {/* Mobile brand */}
+            <div className="lp-mb-brand">
+              <div className="lp-mb-icon">
                 <GavelRounded sx={{ fontSize: 24, color: '#C9A84C' }} />
-              </Box>
-              <Typography sx={{ fontWeight: 800, fontSize: '1.05rem', color: '#0D1B2A', display: 'block' }}>
-                HP Highcourt management system
-              </Typography>
-            </Box>
+              </div>
+              <div className="lp-mb-name">HP High Court</div>
+              <div className="lp-mb-sub">Management System</div>
+            </div>
 
-            {/* Lock icon badge */}
-            <Box sx={{ display: { xs: 'none', lg: 'flex' }, mb: 3 }}>
-              <Box sx={{
-                width: 44, height: 44, borderRadius: '12px',
-                background: '#F9F6F0',
-                border: '1px solid #E8C97A',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <LockOutlined sx={{ color: '#C9A84C', fontSize: 20 }} />
-              </Box>
-            </Box>
+            {/* Step */}
+            <div className="lp-step">
+              <div className="lp-step-dot" />
+              <span className="lp-step-text">Authenticate</span>
+            </div>
 
             {/* Heading */}
-            <Box sx={{ mb: 4 }}>
-              <Typography sx={{
-                fontFamily: '"DM Serif Display", serif',
-                fontSize: '1.9rem', fontWeight: 400,
-                color: '#0D1B2A', lineHeight: 1.15, mb: 0.75,
-              }}>
-                Welcome back
-              </Typography>
-              <Typography sx={{ color: '#94A3B8', fontSize: '0.875rem', lineHeight: 1.6 }}>
-                Sign in to access your legal workspace
-              </Typography>
-            </Box>
+            <h2 className="lp-heading">Welcome <em>back.</em></h2>
+            <p className="lp-sub">Sign in to access your legal workspace.</p>
 
-            {/* Error alert */}
+            {/* Error */}
             {localError && (
-              <Alert severity="error" sx={{
-                mb: 3, borderRadius: '12px',
-                border: '1px solid #FECACA', background: '#FEF2F2',
-                '& .MuiAlert-icon': { color: '#EF4444' },
-              }}>
+              <Alert
+                severity="error"
+                sx={{
+                  mb: 2.5, borderRadius: '11px',
+                  border: '1px solid #FECACA',
+                  background: '#FEF2F2',
+                  fontFamily: '"DM Sans"', fontSize: '0.83rem', py: 0.6,
+                  '& .MuiAlert-icon': { color: '#EF4444', fontSize: 20 },
+                }}
+              >
                 {localError}
               </Alert>
             )}
 
             {/* Form */}
-            <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Box component="form" onSubmit={handleSubmit}>
 
               {/* Username */}
-              <Box sx={{ mb: 2.5 }}>
-                <Typography sx={{
-                  fontSize: '0.75rem', fontWeight: 700, color: '#475569',
-                  textTransform: 'uppercase', letterSpacing: '0.08em', mb: 0.9,
-                }}>
-                  Username
-                </Typography>
+              <div className="lp-field">
+                <div className="lp-field-top">
+                  <span className="lp-field-label">Username</span>
+                </div>
                 <TextField
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
+                  onFocus={() => setFocused('user')}
+                  onBlur={() => setFocused(null)}
                   required fullWidth
-                  placeholder="Enter your username"
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '12px',
-                      background: '#F9F6F0',
-                      fontSize: '0.925rem',
-                      '& fieldset': { borderColor: '#E2E8F0', borderWidth: '1.5px' },
-                      '&:hover fieldset': { borderColor: '#C9A84C' },
-                      '&.Mui-focused fieldset': { borderColor: '#C9A84C', borderWidth: '2px' },
-                    },
-                    '& .MuiOutlinedInput-input': { py: 1.5, px: 1.5 },
-                  }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <PersonOutline sx={{ color: '#C9A84C', fontSize: 20 }} />
-                      </InputAdornment>
-                    ),
-                  }}
+                  placeholder="e.g. adv.ramsharma"
+                  autoComplete="username"
+                  sx={fieldSx('user')}
                 />
-              </Box>
+              </div>
 
               {/* Password */}
-              <Box sx={{ mb: 3.5 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.9 }}>
-                  <Typography sx={{
-                    fontSize: '0.75rem', fontWeight: 700, color: '#475569',
-                    textTransform: 'uppercase', letterSpacing: '0.08em',
-                  }}>
-                    Password
-                  </Typography>
-                  <Typography sx={{
-                    fontSize: '0.78rem', color: '#C9A84C', fontWeight: 600,
-                    cursor: 'pointer', '&:hover': { color: '#A07830' },
-                  }}>
-                    Forgot password?
-                  </Typography>
-                </Box>
+              <div className="lp-field">
+                <div className="lp-field-top">
+                  <span className="lp-field-label">Password</span>
+                  <span className="lp-field-link">Forgot password?</span>
+                </div>
                 <TextField
                   type={showPass ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  onFocus={() => setFocused('pass')}
+                  onBlur={() => setFocused(null)}
                   required fullWidth
-                  placeholder="Enter your password"
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '12px',
-                      background: '#F9F6F0',
-                      fontSize: '0.925rem',
-                      '& fieldset': { borderColor: '#E2E8F0', borderWidth: '1.5px' },
-                      '&:hover fieldset': { borderColor: '#C9A84C' },
-                      '&.Mui-focused fieldset': { borderColor: '#C9A84C', borderWidth: '2px' },
-                    },
-                    '& .MuiOutlinedInput-input': { py: 1.5, px: 1.5 },
-                  }}
+                  placeholder="••••••••••"
+                  autoComplete="current-password"
+                  sx={fieldSx('pass')}
                   InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LockOutlined sx={{ color: '#C9A84C', fontSize: 20 }} />
-                      </InputAdornment>
-                    ),
                     endAdornment: (
                       <InputAdornment position="end">
                         <IconButton
-                          onClick={() => setShowPass(!showPass)} edge="end" size="small"
-                          sx={{ color: '#94A3B8', '&:hover': { color: '#C9A84C' } }}
+                          onClick={() => setShowPass(!showPass)}
+                          edge="end" size="small"
+                          sx={{
+                            color: '#CBD5E1', mr: 0.25,
+                            '&:hover': { color: '#0D1B2A', background: 'transparent' },
+                            transition: 'color 0.18s',
+                          }}
                         >
-                          {showPass ? <VisibilityOff sx={{ fontSize: 18 }} /> : <Visibility sx={{ fontSize: 18 }} />}
+                          {showPass
+                            ? <VisibilityOff sx={{ fontSize: 18 }} />
+                            : <Visibility sx={{ fontSize: 18 }} />}
                         </IconButton>
                       </InputAdornment>
                     ),
                   }}
                 />
-              </Box>
+              </div>
 
-              {/* Sign In button */}
+              {/* CTA */}
               <Button
-                type="submit" variant="contained" fullWidth size="large"
-                disabled={loading}
+                type="submit" fullWidth disabled={loading}
                 sx={{
-                  borderRadius: '12px', py: 1.65,
-                  fontSize: '0.95rem', fontWeight: 700, letterSpacing: '0.01em',
-                  background: '#0D1B2A', color: '#FFFFFF', border: '1px solid #0D1B2A',
-                  '&:hover': {
-                    background: '#1B2D41',
-                    boxShadow: '0 8px 24px rgba(13,27,42,0.28)',
-                    transform: 'translateY(-1px)',
+                  mt: 0.5, py: 1.6,
+                  borderRadius: '11px',
+                  fontFamily: '"DM Sans"',
+                  fontSize: '0.92rem', fontWeight: 700,
+                  textTransform: 'none',
+                  letterSpacing: '0.01em',
+                  background: 'linear-gradient(135deg, #0D1B2A 0%, #1B2D41 100%)',
+                  color: '#fff',
+                  boxShadow: '0 4px 14px rgba(13,27,42,0.25), inset 0 1px 0 rgba(255,255,255,0.07)',
+                  position: 'relative', overflow: 'hidden',
+                  transition: 'all 0.22s ease',
+                  '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0, left: '-100%',
+                    width: '60%', height: '100%',
+                    background: 'linear-gradient(90deg, transparent, rgba(201,168,76,0.12), transparent)',
+                    transition: 'left 0.5s ease',
                   },
-                  '&:active': { transform: 'translateY(0)' },
-                  '&.Mui-disabled': { background: '#CBD5E1', color: '#FFFFFF', border: 'none' },
-                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #1B2D41 0%, #243A52 100%)',
+                    boxShadow: '0 8px 24px rgba(13,27,42,0.32), inset 0 1px 0 rgba(255,255,255,0.07)',
+                    transform: 'translateY(-1px)',
+                    '&::after': { left: '140%' },
+                  },
+                  '&:active': { transform: 'translateY(0)', boxShadow: '0 3px 10px rgba(13,27,42,0.2)' },
+                  '&.Mui-disabled': { background: '#E2E8F0', color: '#94A3B8', boxShadow: 'none' },
                 }}
               >
-                {loading ? <CircularProgress size={22} sx={{ color: '#FFFFFF' }} /> : 'Sign In'}
+                {loading
+                  ? <CircularProgress size={20} sx={{ color: '#fff' }} />
+                  : 'Sign in to Chambers'}
               </Button>
             </Box>
 
-            {/* Divider */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, my: 3 }}>
-              <Box sx={{ flex: 1, height: '1px', background: '#F1F5F9' }} />
-              <Typography sx={{ fontSize: '0.7rem', color: '#CBD5E1', letterSpacing: '0.07em', textTransform: 'uppercase' }}>
-                Secured with JWT
-              </Typography>
-              <Box sx={{ flex: 1, height: '1px', background: '#F1F5F9' }} />
-            </Box>
-
-            {/* Security trust badges */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-              {['256-bit SSL', 'SOC 2 Ready', 'GDPR Safe'].map((badge) => (
-                <Box key={badge} sx={{
-                  display: 'flex', alignItems: 'center', gap: 0.6,
-                  px: 1.4, py: 0.55,
-                  background: '#F9F6F0', border: '1px solid #E2E8F0', borderRadius: '99px',
-                }}>
-                  <Box sx={{ width: 5, height: 5, borderRadius: '50%', background: '#22C55E', flexShrink: 0 }} />
-                  <Typography sx={{ fontSize: '0.68rem', color: '#64748B', fontWeight: 600 }}>{badge}</Typography>
-                </Box>
-              ))}
-            </Box>
+            <div className="lp-divider" />
 
             {/* Footer */}
-            <Typography sx={{ mt: 3.5, textAlign: 'center', color: '#CBD5E1', fontSize: '0.74rem' }}>
-              © {new Date().getFullYear()} NTS Legal Pro · All rights reserved
-            </Typography>
-          </CardContent>
-        </Card>
-      </Box>
-    </Box>
+            <div className="lp-foot">
+              <span>256-BIT TLS</span>
+              <span className="lp-foot-sep" />
+              <span>JWT SECURE</span>
+              <span className="lp-foot-sep" />
+              <span>© {new Date().getFullYear()} NTS Legal Pro</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </>
   );
 };
 

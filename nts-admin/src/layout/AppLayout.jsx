@@ -21,60 +21,60 @@ const DRAWER_WIDTH = 256;
 
 /* ─── nav items ───────────────────────────────── */
 const NAV_ITEMS = [
-  { label: 'Dashboard',     icon: <DashboardRounded />,    path: '/' },
-  { label: 'Clients',       icon: <PeopleRounded />,        path: '/clients' },
-  { label: 'Firms',         icon: <BalanceRounded />,       path: '/firms' },
-  { label: 'Cases',         icon: <GavelRounded />,         path: '/cases' },
-  { label: 'Hearings',      icon: <CalendarMonthRounded />, path: '/hearings' },
-  { label: 'Documents',     icon: <FolderRounded />,        path: '/documents' },
-  { label: 'Payments',      icon: <PaymentsRounded />,      path: '/payments' },
-  { label: 'Team',          icon: <GroupsRounded />,        path: '/team' },
-  { label: 'Tasks',         icon: <AssignmentRounded />,    path: '/tasks' },
-  { label: 'Plans',         icon: <VerifiedRounded />,      path: '/plans' },
-  { label: 'Subscriptions', icon: <PaymentsRounded />,      path: '/subscriptions' },
-  { label: 'Support',       icon: <SupportAgentRounded />,  path: '/support' },
-  { label: 'Profile',       icon: <AccountCircleRounded />, path: '/profile' },
-  { label: 'Settings',      icon: <SettingsRounded />,      path: '/settings' },
-  { label: 'Brand Settings',icon: <SettingsRounded />,      path: '/brand_setting' },
+  { label: 'Dashboard', icon: <DashboardRounded />, path: '/' },
+  { label: 'Clients', icon: <PeopleRounded />, path: '/clients' },
+  { label: 'Firms', icon: <BalanceRounded />, path: '/firms' },
+  { label: 'Cases', icon: <GavelRounded />, path: '/cases' },
+  { label: 'Hearings', icon: <CalendarMonthRounded />, path: '/hearings' },
+  { label: 'Documents', icon: <FolderRounded />, path: '/documents' },
+  { label: 'Payments', icon: <PaymentsRounded />, path: '/payments' },
+  { label: 'Team', icon: <GroupsRounded />, path: '/team' },
+  { label: 'Tasks', icon: <AssignmentRounded />, path: '/tasks' },
+  { label: 'Plans', icon: <VerifiedRounded />, path: '/plans' },
+  { label: 'Subscriptions', icon: <PaymentsRounded />, path: '/subscriptions' },
+  { label: 'Support', icon: <SupportAgentRounded />, path: '/support' },
+  { label: 'Profile', icon: <AccountCircleRounded />, path: '/profile' },
+  { label: 'Settings', icon: <SettingsRounded />, path: '/settings' },
+  { label: 'Brand Settings', icon: <SettingsRounded />, path: '/brand_setting' },
 ];
 
 const MENU_CONFIG = {
   super_admin: ['Dashboard', 'Firms', 'Plans', 'Subscriptions', 'Support', 'Settings'],
-  admin:       ['Dashboard', 'Clients', 'Cases', 'Documents', 'Payments', 'Team', 'Tasks', 'Plans', 'Support', 'Settings', 'Brand Settings'],
-  lawyer:      ['Dashboard', 'Cases', 'Hearings', 'Documents', 'Clients', 'Tasks', 'Support', 'Profile', 'Settings'],
-  staff:       ['Dashboard', 'Clients', 'Cases', 'Documents', 'Payments', 'Tasks', 'Support', 'Profile', 'Settings'],
+  admin: ['Dashboard', 'Clients', 'Cases', 'Documents', 'Payments', 'Team', 'Tasks', 'Plans', 'Support', 'Settings', 'Brand Settings'],
+  lawyer: ['Dashboard', 'Cases', 'Hearings', 'Documents', 'Clients', 'Tasks', 'Support', 'Profile', 'Settings'],
+  staff: ['Dashboard', 'Clients', 'Cases', 'Documents', 'Payments', 'Tasks', 'Support', 'Profile', 'Settings'],
 };
 
 const NAV_SECTIONS = {
   super_admin: [
-    { heading: 'Overview',   items: ['Dashboard'] },
+    { heading: 'Overview', items: ['Dashboard'] },
     { heading: 'Management', items: ['Firms', 'Plans', 'Subscriptions'] },
-    { heading: 'System',     items: ['Support', 'Settings'] },
+    { heading: 'System', items: ['Support', 'Settings'] },
   ],
   admin: [
-    { heading: 'Overview',   items: ['Dashboard'] },
-    { heading: 'Workspace',  items: ['Clients', 'Cases', 'Documents', 'Payments'] },
-    { heading: 'Manage',     items: ['Team', 'Tasks', 'Plans'] },
-    { heading: 'System',     items: ['Support', 'Settings', 'Brand Settings'] },
+    { heading: 'Overview', items: ['Dashboard'] },
+    { heading: 'Workspace', items: ['Clients', 'Cases', 'Documents', 'Payments'] },
+    { heading: 'Manage', items: ['Team', 'Tasks', 'Plans'] },
+    { heading: 'System', items: ['Support', 'Settings', 'Brand Settings'] },
   ],
   lawyer: [
-    { heading: 'Overview',   items: ['Dashboard'] },
-    { heading: 'Legal',      items: ['Cases', 'Hearings', 'Documents', 'Clients'] },
-    { heading: 'Tools',      items: ['Tasks', 'Support'] },
-    { heading: 'Account',    items: ['Profile', 'Settings'] },
+    { heading: 'Overview', items: ['Dashboard'] },
+    { heading: 'Legal', items: ['Cases', 'Hearings', 'Documents', 'Clients'] },
+    { heading: 'Tools', items: ['Tasks', 'Support'] },
+    { heading: 'Account', items: ['Profile', 'Settings'] },
   ],
   staff: [
-    { heading: 'Overview',   items: ['Dashboard'] },
-    { heading: 'Work',       items: ['Clients', 'Cases', 'Documents', 'Payments', 'Tasks'] },
-    { heading: 'Account',    items: ['Support', 'Profile', 'Settings'] },
+    { heading: 'Overview', items: ['Dashboard'] },
+    { heading: 'Work', items: ['Clients', 'Cases', 'Documents', 'Payments', 'Tasks'] },
+    { heading: 'Account', items: ['Support', 'Profile', 'Settings'] },
   ],
 };
 
 const ROLE_LABELS = {
   super_admin: 'Super Admin',
-  admin:       'Administrator',
-  lawyer:      'Lawyer',
-  staff:       'Staff',
+  admin: 'Administrator',
+  lawyer: 'Lawyer',
+  staff: 'Staff',
 };
 
 /* ─── helpers ─────────────────────────────────── */
@@ -92,8 +92,8 @@ function isLight(hex) {
   try {
     const n = parseInt(hex.replace('#', ''), 16);
     const r = (n >> 16) & 0xff;
-    const g = (n >> 8)  & 0xff;
-    const b =  n        & 0xff;
+    const g = (n >> 8) & 0xff;
+    const b = n & 0xff;
     return (0.299 * r + 0.587 * g + 0.114 * b) > 128;
   } catch { return false; }
 }
@@ -102,16 +102,16 @@ function isLight(hex) {
    SIDEBAR CONTENT
 ══════════════════════════════════════════════════ */
 function SidebarContent({ user, role, location, firmTheme, onNav }) {
-  const primary  = firmTheme.primaryColor || '#0D1B2A';
-  const accent   = firmTheme.accentColor  || '#C9A84C';
-  const fontFam  = firmTheme.fontFamily   || 'DM Sans, sans-serif';
-  const firmName = firmTheme.firmName     || 'NTS Legal Pro';
+  const primary = firmTheme.primaryColor || '#0D1B2A';
+  const accent = firmTheme.accentColor || '#C9A84C';
+  const fontFam = firmTheme.fontFamily || 'DM Sans, sans-serif';
+  const firmName = firmTheme.firmName || 'NTS Legal Pro';
 
-  const bgDark       = darken(primary, 15);
-  const textColor    = isLight(primary) ? 'rgba(0,0,0,0.85)'  : '#ffffff';
-  const mutedColor   = isLight(primary) ? 'rgba(0,0,0,0.45)'  : 'rgba(255,255,255,0.45)';
-  const dividerColor = isLight(primary) ? 'rgba(0,0,0,0.10)'  : 'rgba(255,255,255,0.08)';
-  const hoverBg      = isLight(primary) ? 'rgba(0,0,0,0.05)'  : 'rgba(255,255,255,0.06)';
+  const bgDark = darken(primary, 15);
+  const textColor = isLight(primary) ? 'rgba(0,0,0,0.85)' : '#ffffff';
+  const mutedColor = isLight(primary) ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.45)';
+  const dividerColor = isLight(primary) ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.08)';
+  const hoverBg = isLight(primary) ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.06)';
 
   const sections = NAV_SECTIONS[role] || [{ heading: 'Menu', items: MENU_CONFIG[role] || [] }];
   const isActive = (path) =>
@@ -155,7 +155,7 @@ function SidebarContent({ user, role, location, firmTheme, onNav }) {
               fontSize: '0.58rem', color: mutedColor,
               letterSpacing: '0.12em', textTransform: 'uppercase',
             }}>
-             HP Highcourt management system
+              HP Highcourt management system
             </Typography>
           </Box>
         </Box>
@@ -280,18 +280,18 @@ function SidebarContent({ user, role, location, firmTheme, onNav }) {
    MAIN LAYOUT
 ══════════════════════════════════════════════════ */
 export default function MainLayout() {
-  const { user, logout }     = useAuth();
+  const { user, logout } = useAuth();
   const { theme: firmTheme } = useTheme();
-  const navigate             = useNavigate();
-  const location             = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [anchorEl, setAnchorEl]     = useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
 
-  const role    = (user?.role || 'staff').toLowerCase();
-  const accent  = firmTheme.accentColor  || '#C9A84C';
+  const role = (user?.role || 'staff').toLowerCase();
+  const accent = firmTheme.accentColor || '#C9A84C';
   const primary = firmTheme.primaryColor || '#0D1B2A';
-  const fontFam = firmTheme.fontFamily   || 'DM Sans, sans-serif';
+  const fontFam = firmTheme.fontFamily || 'DM Sans, sans-serif';
 
   const handleLogout = () => {
     window.dispatchEvent(new Event('auth:logout'));
@@ -339,15 +339,15 @@ export default function MainLayout() {
 
             {/* Breadcrumb */}
             <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center', gap: 1 }}>
+              {/* ✅ FIXED: show product name, NOT the firm/client name */}
               <Typography sx={{ fontSize: '0.7rem', color: '#94A3B8', fontWeight: 500, fontFamily: fontFam }}>
-                {firmTheme.firmName || 'NTS Legal'}
+                HP HCMS
               </Typography>
               <ChevronRightRounded sx={{ fontSize: 14, color: '#CBD5E1' }} />
               <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#0D1B2A', fontFamily: fontFam }}>
                 {pageTitle}
               </Typography>
             </Box>
-
             {/* Search */}
             <Box sx={{
               display: 'flex', alignItems: 'center',
@@ -360,8 +360,10 @@ export default function MainLayout() {
               <SearchRounded sx={{ fontSize: 17, color: '#94A3B8', mr: 1, flexShrink: 0 }} />
               <InputBase
                 placeholder="Search anything…"
-                sx={{ fontSize: '0.82rem', flex: 1, color: '#0D1B2A', fontFamily: fontFam,
-                  '& ::placeholder': { color: '#94A3B8', opacity: 1 } }}
+                sx={{
+                  fontSize: '0.82rem', flex: 1, color: '#0D1B2A', fontFamily: fontFam,
+                  '& ::placeholder': { color: '#94A3B8', opacity: 1 }
+                }}
               />
             </Box>
 
@@ -437,9 +439,9 @@ export default function MainLayout() {
               </Box>
 
               {[
-                { label: 'Profile',        icon: <AccountCircleRounded sx={{ fontSize: 17 }} />, to: '/profile' },
-                { label: 'Settings',       icon: <SettingsRounded      sx={{ fontSize: 17 }} />, to: '/settings' },
-                { label: 'Brand Settings', icon: <SettingsRounded      sx={{ fontSize: 17 }} />, to: '/brand_setting' },
+                { label: 'Profile', icon: <AccountCircleRounded sx={{ fontSize: 17 }} />, to: '/profile' },
+                { label: 'Settings', icon: <SettingsRounded sx={{ fontSize: 17 }} />, to: '/settings' },
+                { label: 'Brand Settings', icon: <SettingsRounded sx={{ fontSize: 17 }} />, to: '/brand_setting' },
               ].map(({ label, icon, to }) => (
                 <MenuItem key={label} component={Link} to={to} onClick={() => setAnchorEl(null)}
                   sx={{ py: 1.2, px: 2, gap: 1.5, fontSize: '0.83rem', fontWeight: 500, color: '#0D1B2A', fontFamily: fontFam, '&:hover': { background: `${accent}12` } }}>

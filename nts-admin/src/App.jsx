@@ -28,7 +28,8 @@ import BrandingSettingsPage from './pages/BrandingSettingsPage';
 import { PrivacyPolicyPage } from './pages/legal/PrivacyPolicyPage';
 import TermsPage             from './pages/legal/TermsPage';
 import FAQPage               from './pages/legal/FAQPage';
-
+import ForgotPasswordPage    from './pages/ForgotPasswordPage';
+import ResetPasswordPage     from './pages/ResetPasswordPage';
 
 function AppRoutes() {
   const { user } = useAuth();
@@ -45,7 +46,8 @@ function AppRoutes() {
       <Route path="/privacy" element={<PrivacyPolicyPage />} />
       <Route path="/terms"   element={<TermsPage />} />
       <Route path="/faq"     element={<FAQPage />} />
-
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       {/* 🔐 PROTECTED */}
       <Route
         path="/"
