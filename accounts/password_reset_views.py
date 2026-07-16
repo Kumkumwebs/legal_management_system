@@ -34,7 +34,7 @@ class ForgotPasswordView(APIView):
 
         # Always return 200 even if email not found — prevents user enumeration
         try:
-            user = User.objects.get(email__iexact=email)
+            user = User.objects.filter(email__iexact=email).first()
         except User.DoesNotExist:
             return Response(
                 {"message": "If this email is registered, you will receive a reset link shortly."},
@@ -108,6 +108,3 @@ class ResetPasswordView(APIView):
         return Response({"message": "Password updated successfully."}, status=200)
 
 
-# ═══════════════════════════════════════════════════════
-# MODEL — add this to accounts/models.py
-# ═══════════════════════════════════════════════════════

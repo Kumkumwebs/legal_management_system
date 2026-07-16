@@ -341,7 +341,7 @@ export default function ForgotPasswordPage() {
                 <GavelRounded sx={{ fontSize: 20, color: '#0D1B2A' }} />
               </div>
               <div>
-                <div className="fp-logo-name">HP High Court</div>
+                <div className="fp-logo-name">NTS online services opc pvt LTD</div>
                 <div className="fp-logo-sub">Management System</div>
               </div>
             </div>
@@ -399,7 +399,7 @@ export default function ForgotPasswordPage() {
               <div className="fp-mb-icon">
                 <GavelRounded sx={{ fontSize: 24, color: T.gold }} />
               </div>
-              <div className="fp-mb-name">HP High Court</div>
+              <div className="fp-mb-name">NTS online services opc pvt LTD</div>
               <div className="fp-mb-sub">Management System</div>
             </div>
 

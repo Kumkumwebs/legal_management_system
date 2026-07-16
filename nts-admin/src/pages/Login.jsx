@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box, TextField, Button, Alert,
@@ -38,12 +38,7 @@ const CSS = `
   0%   { transform: scale(1); opacity: 0.6; }
   100% { transform: scale(1.5); opacity: 0; }
 }
-@keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
 
-/* ─── Root ─── */
 .lp {
   display: flex;
   min-height: 100vh;
@@ -64,335 +59,122 @@ const CSS = `
 }
 @media (min-width: 1024px) { .lp-left { display: flex; } }
 
-/* Animated mesh orbs */
-.lp-orb {
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-  filter: blur(60px);
-}
-.lp-orb-1 {
-  width: 480px; height: 480px;
-  top: -100px; left: -120px;
-  background: radial-gradient(circle, rgba(201,168,76,0.18) 0%, transparent 70%);
-  animation: float-a 14s ease-in-out infinite;
-}
-.lp-orb-2 {
-  width: 360px; height: 360px;
-  bottom: -80px; right: -80px;
-  background: radial-gradient(circle, rgba(41,82,140,0.35) 0%, transparent 70%);
-  animation: float-b 18s ease-in-out infinite;
-}
-.lp-orb-3 {
-  width: 240px; height: 240px;
-  top: 45%; left: 40%;
-  background: radial-gradient(circle, rgba(201,168,76,0.10) 0%, transparent 70%);
-  animation: float-c 10s ease-in-out infinite;
-}
+.lp-orb { position: absolute; border-radius: 50%; pointer-events: none; filter: blur(60px); }
+.lp-orb-1 { width: 480px; height: 480px; top: -100px; left: -120px; background: radial-gradient(circle, rgba(201,168,76,0.18) 0%, transparent 70%); animation: float-a 14s ease-in-out infinite; }
+.lp-orb-2 { width: 360px; height: 360px; bottom: -80px; right: -80px; background: radial-gradient(circle, rgba(41,82,140,0.35) 0%, transparent 70%); animation: float-b 18s ease-in-out infinite; }
+.lp-orb-3 { width: 240px; height: 240px; top: 45%; left: 40%; background: radial-gradient(circle, rgba(201,168,76,0.10) 0%, transparent 70%); animation: float-c 10s ease-in-out infinite; }
+.lp-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px); background-size: 48px 48px; }
+.lp-grain { position: absolute; inset: 0; opacity: 0.04; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-size: 160px; pointer-events: none; }
 
-/* Fine grid overlay */
-.lp-grid {
-  position: absolute; inset: 0;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
-  background-size: 48px 48px;
-}
-
-/* Noise grain */
-.lp-grain {
-  position: absolute; inset: 0;
-  opacity: 0.04;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size: 160px;
-  pointer-events: none;
-}
-
-/* Top nav */
-.lp-nav {
-  position: relative; z-index: 2;
-  display: flex; align-items: center; justify-content: space-between;
-  animation: fadeSlideUp 0.6s ease both;
-}
+.lp-nav { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; animation: fadeSlideUp 0.6s ease both; }
 .lp-logo { display: flex; align-items: center; gap: 14px; }
-.lp-logo-icon {
-  width: 42px; height: 42px; border-radius: 11px;
-  background: linear-gradient(135deg, #C9A84C 0%, #E8C97A 100%);
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 0 0 1px rgba(201,168,76,0.4), 0 8px 20px rgba(201,168,76,0.2);
-}
-.lp-logo-name {
-  font-size: 0.88rem; font-weight: 700; color: #fff; letter-spacing: -0.01em;
-}
-.lp-logo-sub {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.58rem; color: rgba(201,168,76,0.65);
-  letter-spacing: 0.2em; text-transform: uppercase; margin-top: 4px;
-}
-.lp-status {
-  display: flex; align-items: center; gap: 8px;
-  padding: 6px 14px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 99px;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.62rem; color: rgba(255,255,255,0.5);
-  letter-spacing: 0.1em;
-}
-.lp-status-dot {
-  position: relative;
-  width: 7px; height: 7px;
-}
-.lp-status-dot::before,
-.lp-status-dot::after {
-  content: '';
-  position: absolute; inset: 0;
-  border-radius: 50%;
-  background: #4ADE80;
-}
-.lp-status-dot::after {
-  animation: pulse-ring 1.8s ease-out infinite;
-}
+.lp-logo-icon { width: 42px; height: 42px; border-radius: 11px; background: linear-gradient(135deg, #C9A84C 0%, #E8C97A 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 1px rgba(201,168,76,0.4), 0 8px 20px rgba(201,168,76,0.2); }
+.lp-logo-name { font-size: 0.88rem; font-weight: 700; color: #fff; letter-spacing: -0.01em; }
+.lp-logo-sub { font-family: 'DM Mono', monospace; font-size: 0.58rem; color: rgba(201,168,76,0.65); letter-spacing: 0.2em; text-transform: uppercase; margin-top: 4px; }
+.lp-status { display: flex; align-items: center; gap: 8px; padding: 6px 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 99px; font-family: 'DM Mono', monospace; font-size: 0.62rem; color: rgba(255,255,255,0.5); letter-spacing: 0.1em; }
+.lp-status-dot { position: relative; width: 7px; height: 7px; }
+.lp-status-dot::before, .lp-status-dot::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: #4ADE80; }
+.lp-status-dot::after { animation: pulse-ring 1.8s ease-out infinite; }
 
-/* Hero content */
-.lp-hero {
-  position: relative; z-index: 2;
-  animation: fadeSlideUp 0.7s ease 0.1s both;
-}
+.lp-hero { position: relative; z-index: 2; animation: fadeSlideUp 0.7s ease 0.1s both; }
+.lp-kicker { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 24px; }
+.lp-kicker-line { height: 1px; width: 40px; background: linear-gradient(90deg, #C9A84C, transparent); transform-origin: left; animation: lineGrow 0.8s ease 0.4s both; }
+.lp-kicker-text { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: #C9A84C; letter-spacing: 0.22em; text-transform: uppercase; }
+.lp-headline { font-family: 'DM Serif Display', serif; font-size: clamp(2.4rem, 3.2vw, 3.6rem); font-weight: 400; color: #fff; line-height: 1.06; letter-spacing: -0.025em; margin-bottom: 22px; }
+.lp-headline em { font-style: italic; color: #C9A84C; }
+.lp-desc { font-size: 0.95rem; color: rgba(255,255,255,0.45); line-height: 1.75; max-width: 420px; }
 
-.lp-kicker {
-  display: inline-flex; align-items: center; gap: 10px;
-  margin-bottom: 24px;
-}
-.lp-kicker-line {
-  height: 1px; width: 40px;
-  background: linear-gradient(90deg, #C9A84C, transparent);
-  transform-origin: left;
-  animation: lineGrow 0.8s ease 0.4s both;
-}
-.lp-kicker-text {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.65rem; color: #C9A84C;
-  letter-spacing: 0.22em; text-transform: uppercase;
-}
-
-.lp-headline {
-  font-family: 'DM Serif Display', serif;
-  font-size: clamp(2.4rem, 3.2vw, 3.6rem);
-  font-weight: 400; color: #fff;
-  line-height: 1.06; letter-spacing: -0.025em;
-  margin-bottom: 22px;
-}
-.lp-headline em {
-  font-style: italic; color: #C9A84C;
-}
-
-.lp-desc {
-  font-size: 0.95rem; color: rgba(255,255,255,0.45);
-  line-height: 1.75; max-width: 420px;
-}
-
-/* Glass feature card */
-.lp-glass {
-  margin-top: 44px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 16px;
-  padding: 28px;
-  backdrop-filter: blur(12px);
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 0;
-}
-.lp-stat {
-  padding: 0 24px;
-  border-right: 1px solid rgba(255,255,255,0.07);
-}
+.lp-glass { margin-top: 44px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 28px; backdrop-filter: blur(12px); display: grid; grid-template-columns: 1fr 1fr 1fr; }
+.lp-stat { padding: 0 24px; border-right: 1px solid rgba(255,255,255,0.07); }
 .lp-stat:first-child { padding-left: 0; }
 .lp-stat:last-child  { border: none; }
-.lp-stat-val {
-  font-family: 'DM Mono', monospace;
-  font-size: 1.65rem; font-weight: 500;
-  color: #C9A84C; letter-spacing: -0.02em;
-}
-.lp-stat-label {
-  font-size: 0.72rem; color: rgba(255,255,255,0.4);
-  margin-top: 4px; letter-spacing: 0.04em;
-}
+.lp-stat-val { font-family: 'DM Mono', monospace; font-size: 1.65rem; font-weight: 500; color: #C9A84C; letter-spacing: -0.02em; }
+.lp-stat-label { font-size: 0.72rem; color: rgba(255,255,255,0.4); margin-top: 4px; }
 
-/* Bottom quote */
-.lp-quote-wrap {
-  position: relative; z-index: 2;
-  animation: fadeSlideUp 0.7s ease 0.2s both;
-}
-.lp-quote {
-  display: flex; gap: 16px; align-items: flex-start;
-}
-.lp-quote-bar {
-  width: 2px; min-height: 48px;
-  background: linear-gradient(to bottom, #C9A84C, transparent);
-  border-radius: 2px; flex-shrink: 0;
-  margin-top: 2px;
-}
-.lp-quote-text {
-  font-family: 'DM Serif Display', serif;
-  font-style: italic;
-  font-size: 0.95rem; color: rgba(255,255,255,0.6);
-  line-height: 1.6;
-}
-.lp-quote-author {
-  display: block; margin-top: 10px;
-  font-family: 'DM Sans', sans-serif;
-  font-style: normal; font-size: 0.72rem;
-  color: rgba(255,255,255,0.35);
-  letter-spacing: 0.06em; text-transform: uppercase;
-}
+.lp-quote-wrap { position: relative; z-index: 2; animation: fadeSlideUp 0.7s ease 0.2s both; }
+.lp-quote { display: flex; gap: 16px; align-items: flex-start; }
+.lp-quote-bar { width: 2px; min-height: 48px; background: linear-gradient(to bottom, #C9A84C, transparent); border-radius: 2px; flex-shrink: 0; margin-top: 2px; }
+.lp-quote-text { font-family: 'DM Serif Display', serif; font-style: italic; font-size: 0.95rem; color: rgba(255,255,255,0.6); line-height: 1.6; }
+.lp-quote-author { display: block; margin-top: 10px; font-family: 'DM Sans', sans-serif; font-style: normal; font-size: 0.72rem; color: rgba(255,255,255,0.35); letter-spacing: 0.06em; text-transform: uppercase; }
 
 /* ════════ RIGHT PANEL ════════ */
 .lp-right {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: #F8F5EF;
-  padding: 40px 28px;
-  position: relative;
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: #F8F5EF; padding: 40px 28px; position: relative;
+  min-height: 100vh; /* ✅ Fix: ensure right panel always fills full height */
 }
+.lp-right::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(rgba(13,27,42,0.04) 1px, transparent 1px); background-size: 24px 24px; }
+.lp-arc   { position: absolute; top: -80px; right: -80px; width: 240px; height: 240px; border-radius: 50%; border: 1px solid rgba(201,168,76,0.12); pointer-events: none; }
+.lp-arc-2 { position: absolute; top: -40px; right: -40px; width: 140px; height: 140px; border-radius: 50%; border: 1px solid rgba(201,168,76,0.08); pointer-events: none; }
 
-/* Texture */
-.lp-right::before {
-  content: '';
-  position: absolute; inset: 0;
-  background-image: radial-gradient(rgba(13,27,42,0.04) 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-
-/* Decorative arc top-right */
-.lp-arc {
-  position: absolute; top: -80px; right: -80px;
-  width: 240px; height: 240px;
-  border-radius: 50%;
-  border: 1px solid rgba(201,168,76,0.12);
-  pointer-events: none;
-}
-.lp-arc-2 {
-  position: absolute; top: -40px; right: -40px;
-  width: 140px; height: 140px;
-  border-radius: 50%;
-  border: 1px solid rgba(201,168,76,0.08);
-  pointer-events: none;
-}
-
-.lp-form-wrap {
-  width: 100%; max-width: 400px;
-  position: relative; z-index: 1;
-  animation: fadeSlideUp 0.6s ease 0.15s both;
-}
-
-/* Mobile brand */
-.lp-mb-brand {
-  display: flex; flex-direction: column; align-items: center;
-  margin-bottom: 32px;
-}
+.lp-form-wrap { width: 100%; max-width: 400px; position: relative; z-index: 1; animation: fadeSlideUp 0.6s ease 0.15s both; }
+.lp-mb-brand { display: flex; flex-direction: column; align-items: center; margin-bottom: 32px; }
 @media (min-width: 1024px) { .lp-mb-brand { display: none; } }
-.lp-mb-icon {
-  width: 52px; height: 52px; border-radius: 14px;
-  background: #0D1B2A;
-  display: flex; align-items: center; justify-content: center;
-  margin-bottom: 12px;
-  box-shadow: 0 8px 24px rgba(13,27,42,0.18);
-}
-.lp-mb-name {
-  font-size: 0.88rem; font-weight: 700; color: #0D1B2A;
-}
-.lp-mb-sub {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.58rem; color: #C9A84C;
-  letter-spacing: 0.2em; text-transform: uppercase; margin-top: 5px;
-}
-
-/* Step indicator */
-.lp-step {
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: 18px;
-}
-.lp-step-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: #C9A84C;
-  box-shadow: 0 0 0 3px rgba(201,168,76,0.15);
-}
-.lp-step-text {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.64rem; color: #C9A84C;
-  letter-spacing: 0.18em; text-transform: uppercase;
-}
-
-/* Heading */
-.lp-heading {
-  font-family: 'DM Serif Display', serif;
-  font-size: 2rem; font-weight: 400;
-  color: #0D1B2A; line-height: 1.1;
-  letter-spacing: -0.025em;
-  margin-bottom: 8px;
-}
+.lp-mb-icon { width: 52px; height: 52px; border-radius: 14px; background: #0D1B2A; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: 0 8px 24px rgba(13,27,42,0.18); }
+.lp-mb-name { font-size: 0.88rem; font-weight: 700; color: #0D1B2A; }
+.lp-mb-sub { font-family: 'DM Mono', monospace; font-size: 0.58rem; color: #C9A84C; letter-spacing: 0.2em; text-transform: uppercase; margin-top: 5px; }
+.lp-step { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+.lp-step-dot { width: 8px; height: 8px; border-radius: 50%; background: #C9A84C; box-shadow: 0 0 0 3px rgba(201,168,76,0.15); }
+.lp-step-text { font-family: 'DM Mono', monospace; font-size: 0.64rem; color: #C9A84C; letter-spacing: 0.18em; text-transform: uppercase; }
+.lp-heading { font-family: 'DM Serif Display', serif; font-size: 2rem; font-weight: 400; color: #0D1B2A; line-height: 1.1; letter-spacing: -0.025em; margin-bottom: 8px; }
 .lp-heading em { font-style: italic; color: #C9A84C; }
-
-.lp-sub {
-  font-size: 0.875rem; color: #64748B;
-  line-height: 1.6; margin-bottom: 32px;
-}
-
-/* Field label row */
+.lp-sub { font-size: 0.875rem; color: #64748B; line-height: 1.6; margin-bottom: 32px; }
 .lp-field { margin-bottom: 20px; }
-.lp-field-top {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 8px;
-}
-.lp-field-label {
-  font-size: 0.75rem; font-weight: 600; color: #0D1B2A;
-  letter-spacing: 0.04em;
-}
-.lp-field-link {
-  font-size: 0.74rem; color: #94A3B8; cursor: pointer;
-  transition: color 0.18s;
-}
+.lp-field-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.lp-field-label { font-size: 0.75rem; font-weight: 600; color: #0D1B2A; letter-spacing: 0.04em; }
+.lp-field-link { font-size: 0.74rem; color: #94A3B8; cursor: pointer; transition: color 0.18s; background: none; border: none; padding: 0; font-family: 'DM Sans', sans-serif; }
 .lp-field-link:hover { color: #C9A84C; }
-
-/* Divider line */
-.lp-divider {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #E2E8F0 30%, #E2E8F0 70%, transparent);
-  margin: 24px 0;
-}
-
-/* Footer */
-.lp-foot {
-  margin-top: 24px;
-  display: flex; align-items: center; justify-content: center; gap: 16px;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.64rem; color: #CBD5E1; letter-spacing: 0.08em;
-}
+.lp-divider { height: 1px; background: linear-gradient(90deg, transparent, #E2E8F0 30%, #E2E8F0 70%, transparent); margin: 24px 0; }
+.lp-foot { display: flex; align-items: center; justify-content: center; gap: 16px; font-family: 'DM Mono', monospace; font-size: 0.64rem; color: #CBD5E1; letter-spacing: 0.08em; }
 .lp-foot-sep { width: 3px; height: 3px; border-radius: 50%; background: #E2E8F0; }
 `;
 
+function parseLoginError(err) {
+  if (!err.response) {
+    if (err.request) return 'Cannot reach the server. Check that the Django server is running on port 8000.';
+    return 'Network error. Please check your internet connection.';
+  }
+  const data   = err.response.data;
+  const status = err.response.status;
+  const msg =
+    data?.error ||
+    data?.detail ||
+    data?.message ||
+    (Array.isArray(data?.non_field_errors) ? data.non_field_errors[0] : null) ||
+    (typeof data === 'string' ? data : null);
+  if (msg) return msg;
+  if (status === 401) return 'Incorrect username or password.';
+  if (status === 400) return 'Username and password are required.';
+  if (status === 403) return 'Access denied.';
+  if (status === 500) return 'Server error. Please try again later.';
+  return `Login failed (HTTP ${status}).`;
+}
+
 const LoginPage = () => {
-  const [username, setUsername]   = useState('');
-  const [password, setPassword]   = useState('');
-  const [showPass, setShowPass]   = useState(false);
+  const [username, setUsername]     = useState('');
+  const [password, setPassword]     = useState('');
+  const [showPass, setShowPass]     = useState(false);
   const [localError, setLocalError] = useState('');
-  const [focusedField, setFocused] = useState(null);
-  const { login, loading } = useAuth();
-  const navigate = useNavigate();
+  const [focusedField, setFocused]  = useState(null);
+  const [loading, setLoading]       = useState(false);
+
+  const { login } = useAuth();
+  const navigate  = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLocalError('');
+    setLoading(true);
     try {
-      const ok = await login(username, password);
-      if (ok) navigate('/', { replace: true });
+      await login(username, password);
+      // ✅ FIXED: was navigate('/') which hit the public website route
+      // Now correctly navigates to the protected dashboard
+      navigate('/dashboard', { replace: true });
     } catch (err) {
-      setLocalError(err?.response?.data?.detail || 'Invalid username or password');
+      setLocalError(parseLoginError(err));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -430,15 +212,13 @@ const LoginPage = () => {
           <div className="lp-orb lp-orb-3" />
           <div className="lp-grid" />
           <div className="lp-grain" />
-
-          {/* Top nav */}
           <nav className="lp-nav">
             <div className="lp-logo">
               <div className="lp-logo-icon">
                 <GavelRounded sx={{ fontSize: 20, color: '#0D1B2A' }} />
               </div>
               <div>
-                <div className="lp-logo-name">HP High Court</div>
+                <div className="lp-logo-name">NTS online services opc pvt LTD</div>
                 <div className="lp-logo-sub">Management System</div>
               </div>
             </div>
@@ -447,8 +227,6 @@ const LoginPage = () => {
               LIVE
             </div>
           </nav>
-
-          {/* Hero */}
           <div className="lp-hero">
             <div className="lp-kicker">
               <div className="lp-kicker-line" />
@@ -462,25 +240,12 @@ const LoginPage = () => {
               One unified workspace for clients, cases, hearings,
               documents and revenue — built for the modern law chamber.
             </p>
-
-            {/* Glass stat card */}
             <div className="lp-glass">
-              <div className="lp-stat">
-                <div className="lp-stat-val">12K+</div>
-                <div className="lp-stat-label">Cases Filed</div>
-              </div>
-              <div className="lp-stat">
-                <div className="lp-stat-val">500+</div>
-                <div className="lp-stat-label">Law Firms</div>
-              </div>
-              <div className="lp-stat">
-                <div className="lp-stat-val">99.9%</div>
-                <div className="lp-stat-label">Uptime</div>
-              </div>
+              <div className="lp-stat"><div className="lp-stat-val">12K+</div><div className="lp-stat-label">Cases Filed</div></div>
+              <div className="lp-stat"><div className="lp-stat-val">500+</div><div className="lp-stat-label">Law Firms</div></div>
+              <div className="lp-stat"><div className="lp-stat-val">99.9%</div><div className="lp-stat-label">Uptime</div></div>
             </div>
           </div>
-
-          {/* Quote */}
           <div className="lp-quote-wrap">
             <div className="lp-quote">
               <div className="lp-quote-bar" />
@@ -498,36 +263,30 @@ const LoginPage = () => {
         <div className="lp-right">
           <div className="lp-arc" />
           <div className="lp-arc-2" />
-
           <div className="lp-form-wrap">
-
             {/* Mobile brand */}
             <div className="lp-mb-brand">
               <div className="lp-mb-icon">
                 <GavelRounded sx={{ fontSize: 24, color: '#C9A84C' }} />
               </div>
-              <div className="lp-mb-name">HP High Court</div>
+              <div className="lp-mb-name">NTS online services opc pvt LTD</div>
               <div className="lp-mb-sub">Management System</div>
             </div>
 
-            {/* Step */}
             <div className="lp-step">
               <div className="lp-step-dot" />
               <span className="lp-step-text">Authenticate</span>
             </div>
 
-            {/* Heading */}
             <h2 className="lp-heading">Welcome <em>back.</em></h2>
             <p className="lp-sub">Sign in to access your legal workspace.</p>
 
-            {/* Error */}
             {localError && (
               <Alert
                 severity="error"
                 sx={{
                   mb: 2.5, borderRadius: '11px',
-                  border: '1px solid #FECACA',
-                  background: '#FEF2F2',
+                  border: '1px solid #FECACA', background: '#FEF2F2',
                   fontFamily: '"DM Sans"', fontSize: '0.83rem', py: 0.6,
                   '& .MuiAlert-icon': { color: '#EF4444', fontSize: 20 },
                 }}
@@ -536,9 +295,7 @@ const LoginPage = () => {
               </Alert>
             )}
 
-            {/* Form */}
             <Box component="form" onSubmit={handleSubmit}>
-
               {/* Username */}
               <div className="lp-field">
                 <div className="lp-field-top">
@@ -560,7 +317,13 @@ const LoginPage = () => {
               <div className="lp-field">
                 <div className="lp-field-top">
                   <span className="lp-field-label">Password</span>
-                  <span className="lp-field-link">Forgot password?</span>
+                  <button
+                    type="button"
+                    className="lp-field-link"
+                    onClick={() => navigate('/forgot-password')}
+                  >
+                    Forgot password?
+                  </button>
                 </div>
                 <TextField
                   type={showPass ? 'text' : 'password'}
@@ -576,7 +339,7 @@ const LoginPage = () => {
                     endAdornment: (
                       <InputAdornment position="end">
                         <IconButton
-                          onClick={() => setShowPass(!showPass)}
+                          onClick={() => setShowPass((p) => !p)}
                           edge="end" size="small"
                           sx={{
                             color: '#CBD5E1', mr: 0.25,
@@ -594,25 +357,19 @@ const LoginPage = () => {
                 />
               </div>
 
-              {/* CTA */}
               <Button
                 type="submit" fullWidth disabled={loading}
                 sx={{
-                  mt: 0.5, py: 1.6,
-                  borderRadius: '11px',
-                  fontFamily: '"DM Sans"',
-                  fontSize: '0.92rem', fontWeight: 700,
-                  textTransform: 'none',
-                  letterSpacing: '0.01em',
+                  mt: 0.5, py: 1.6, borderRadius: '11px',
+                  fontFamily: '"DM Sans"', fontSize: '0.92rem', fontWeight: 700,
+                  textTransform: 'none', letterSpacing: '0.01em',
                   background: 'linear-gradient(135deg, #0D1B2A 0%, #1B2D41 100%)',
                   color: '#fff',
                   boxShadow: '0 4px 14px rgba(13,27,42,0.25), inset 0 1px 0 rgba(255,255,255,0.07)',
                   position: 'relative', overflow: 'hidden',
                   transition: 'all 0.22s ease',
                   '&::after': {
-                    content: '""',
-                    position: 'absolute',
-                    top: 0, left: '-100%',
+                    content: '""', position: 'absolute', top: 0, left: '-100%',
                     width: '60%', height: '100%',
                     background: 'linear-gradient(90deg, transparent, rgba(201,168,76,0.12), transparent)',
                     transition: 'left 0.5s ease',
@@ -634,8 +391,6 @@ const LoginPage = () => {
             </Box>
 
             <div className="lp-divider" />
-
-            {/* Footer */}
             <div className="lp-foot">
               <span>256-BIT TLS</span>
               <span className="lp-foot-sep" />

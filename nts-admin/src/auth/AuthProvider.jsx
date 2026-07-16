@@ -10,24 +10,30 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (username, password) => {
     const { data } = await authAPI.login({ username, password });
-    localStorage.setItem('access_token', data.access);
+
+    // ✅ Write tokens FIRST so API client has them before subsequent calls
+    localStorage.setItem('access_token',  data.access);
     localStorage.setItem('refresh_token', data.refresh);
+
     const userData = { username, ...(data.user || {}) };
     localStorage.setItem('user', JSON.stringify(userData));
+
+    // ✅ Set user in state — triggers useEffect([user]) in Dashboard & other pages
     setUser(userData);
+
+    // ✅ Dispatch event so any page using event listeners also refreshes
+    window.dispatchEvent(new CustomEvent('auth:login', { detail: userData }));
+
     return data;
   }, []);
 
   const logout = useCallback(() => {
-    // ✅ Clear auth tokens
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('user');
-
-    // ✅ Clear firm-specific data so next login starts fresh
     localStorage.removeItem('firm_theme');
     localStorage.removeItem('fcm_saved');
-
+    window.dispatchEvent(new Event('auth:logout'));
     setUser(null);
   }, []);
 

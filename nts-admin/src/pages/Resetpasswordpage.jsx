@@ -239,7 +239,7 @@ export default function ResetPasswordPage() {
             <div className="rp-logo">
               <div className="rp-logo-icon"><GavelRounded sx={{ fontSize: 20, color: '#0D1B2A' }} /></div>
               <div>
-                <div className="rp-logo-name">HP High Court</div>
+                <div className="rp-logo-name">NTS online services opc pvt LTD</div>
                 <div className="rp-logo-sub">Management System</div>
               </div>
             </div>
@@ -288,7 +288,7 @@ export default function ResetPasswordPage() {
             {/* Mobile brand */}
             <div className="rp-mb-brand">
               <div className="rp-mb-icon"><GavelRounded sx={{ fontSize: 24, color: T.gold }} /></div>
-              <div className="rp-mb-name">HP High Court</div>
+              <div className="rp-mb-name">NTS online services opc pvt LTD</div>
               <div className="rp-mb-sub">Management System</div>
             </div>
 

@@ -139,11 +139,13 @@ CORS_ALLOW_CREDENTIALS = True
 # ───────────────────────────────────────────────
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'mail.rakle.in'
-EMAIL_PORT = 25
-EMAIL_USE_TLS = False
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
 EMAIL_HOST_USER = 'helpdesk@rakle.in'
 EMAIL_HOST_PASSWORD = 'Kumkum@1234'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+EMAIL_TIMEOUT = 10   # so it doesn't hang forever
 
 from pathlib import Path
 
